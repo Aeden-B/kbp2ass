@@ -17,7 +17,7 @@ export default class KBPParser {
 	parse(file: string) {
 
     	// Lyric match regex like ZA/            592/622/0
-		let regex = /(.*)\/ +([0-9]+)\/([0-9]+)\/([0-9]+)/g;
+		let regex = /(.*)\/ *([0-9]+)\/([0-9]+)\/([0-9]+)/g;
 
 		if (file.match(regex).length === 0) {
 			throw ('Invalid KaraokeBuilder file');
