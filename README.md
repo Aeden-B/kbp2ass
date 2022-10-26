@@ -1,6 +1,6 @@
 # KBP2ASS
 
-This is a converter for KBP karaoke format to ASS, written in nodeJS.
+This is a converter for [Karaoke Builder Studio](https://www.karaokebuilder.com/kbstudio.php) karaoke format to ASS, written in nodeJS.
 
 ## History
 
