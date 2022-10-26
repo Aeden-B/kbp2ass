@@ -50,7 +50,7 @@ export default class KBPParser {
 			}
 
 			// Ignore block separators and C/A, FX/F/ statements
-			if (line.startsWith('--------') || line.startsWith('C/A/') || line.startsWith('FX/') || line == 'PAGEV2' || line == 'MODS') {
+			if (line.startsWith('--------') || line.match(/C\/[A-Z]/g)?.length > 0 || line.startsWith('FX/') || line == 'PAGEV2' || line == 'MODS') {
             	continue;
 			}
 
@@ -84,7 +84,7 @@ export default class KBPParser {
 				let matches = line.split('/');
 
 				// Get the syllable text
-				syllable.text = matches[0]
+				syllable.text = matches[0];
 
 				// Add the start time of the syllable
 				syllable.start = Math.floor(parseInt(matches[1].trim())*10);
