@@ -50,7 +50,7 @@ export default class KBPParser {
 			}
 
 			// Ignore block separators and C/A, FX/F/ statements
-			if (line.startsWith('--------') || line.startsWith('C/A/') || line.startsWith('FX/') || line == 'PAGEV2') {
+			if (line.startsWith('--------') || line.startsWith('C/A/') || line.startsWith('FX/') || line == 'PAGEV2' || line == 'MODS') {
             	continue;
 			}
 
@@ -76,7 +76,7 @@ export default class KBPParser {
 			}
 
 			// Syllable line
-			if (line.match(regex).length === 1) {
+			if (line.match(regex)?.length === 1) {
 
 				var syllable: any = {};
 
