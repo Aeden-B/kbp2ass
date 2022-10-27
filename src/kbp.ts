@@ -111,10 +111,12 @@ export default class KBPParser {
 				continue;
 			}
 
-			if (line.match(/[LCR]\/[A-Z]/g)?.length > 0) {
+			if (line.match(/[LCR]\/[A-Za-z]/g)?.length > 0) {
 				let element = line.split('/');
-				this.styles[element[1].charCodeAt(0) - 65].Alignment = this.getAlignement(element[0]);
-				currentStyle = this.styles[element[1].charCodeAt(0) - 65].Name;
+				if (element[2] !== '0' && element[3] !== '0') {
+					this.styles[element[1].charCodeAt(0) - 65].Alignment = this.getAlignement(element[0]);
+					currentStyle = this.styles[element[1].charCodeAt(0) - 65].Name;
+				}
 				continue;
 			}
 
