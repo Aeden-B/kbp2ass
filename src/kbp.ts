@@ -111,7 +111,7 @@ export default class KBPParser {
 				continue;
 			}
 
-			if (line.match(/C\/[A-Z]/g)?.length > 0) {
+			if (line.match(/[LCR]\/[A-Z]/g)?.length > 0) {
 				let element = line.split('/');
 				this.styles[element[1].charCodeAt(0) - 65].Alignment = this.getAlignement(element[0]);
 				currentStyle = this.styles[element[1].charCodeAt(0) - 65].Name;
