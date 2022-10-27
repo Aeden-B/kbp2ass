@@ -80,7 +80,7 @@ export function convertToASS(time: string, options: SyllabesConfig): string {
 	const comments = [];
 
 	const styles = clone(ass.styles);
-	styles.body = styles.body.concat(kbp.styles.map(style => getStyleAss(style)));
+	styles.body = styles.body.concat(kbp.styles.length > 0 ? kbp.styles.map(style => getStyleAss(style)) :  [ass.defaultStyle]);
 	const script = clone(ass.dialogue);
 	script.value.Effect = ass.scriptFX;
 	script.value.Text = ass.script;
