@@ -81,7 +81,7 @@ export default class KBPParser {
 				// first line of style
 				let element = line.split(',');
 				let style: StyleElement = {
-					Name: element[1],
+					Name: `${element[0]}_${element[1]}`,
 					PrimaryColour: `&H00${this.getSixDigitHexColor(colours[element[4]])}`,
 					SecondaryColour: `&H00${this.getSixDigitHexColor(colours[element[2]])}`,
 					OutlineColour: `&H00${this.getSixDigitHexColor(colours[element[3]])}`,
