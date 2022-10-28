@@ -5,13 +5,16 @@ import stringify from 'ass-stringify';
 import { StyleElement, SyllabesConfig } from './types';
 import ass = require('./assTemplate');
 
-function generateASSLine(line: any) {
+function generateASSLine(line: any, options: SyllabesConfig) {
 	const ASSLine = [];
 	let startMs = line.start;
 	const stopMs = line.end + 100;
 	line.syllables.forEach((syl: any) => ASSLine.push(
 		(syl.text.startsWith(' ') && ASSLine.length > 0 ? ' ' : '')
-		+ '{\\k' + Math.floor(syl.duration / 10) + '}'
+		+ '{\\k'
+		+ getProgressive(syl, options)
+		+ Math.floor(syl.duration / 10)
+		+ '}'
 		+ syl.text.trim()
 		+ (syl.text.endsWith(' ') ? ' ' : '')
 	));
@@ -32,6 +35,10 @@ function generateASSLine(line: any) {
 		dialogue,
 		comment
 	};
+}
+
+function getProgressive(syl: any, options: SyllabesConfig) {
+	return Math.floor(syl.duration / 10) > Math.floor(options.minimum_progression_duration / 10) ? 'f' : '';
 }
 
 function sortStartTime(a: any, b: any) {
@@ -87,7 +94,7 @@ export function convertToASS(time: string, options: SyllabesConfig): string {
 	script.key = 'Comment';
 	comments.push(script);
 	for (const line of kara.track) {
-		const ASSLines = generateASSLine(line);
+		const ASSLines = generateASSLine(line, options);
 		comments.push(clone(ASSLines.comment));
 		dialogues.push(clone(ASSLines.dialogue));
 	}
@@ -107,9 +114,12 @@ async function mainCLI() {
 	}
 	const txtFile = process.argv[2];
 
+	if (process.argv[3] && isNaN(parseInt(process.argv[3]))) throw 'minimum_progression_duration is not a number';
+	const minimum_progression_duration = process.argv[3] ? parseInt(process.argv[3]) : 500;
+
 	if (!await asyncExists(txtFile)) throw `File ${txtFile} does not exist`;
 	const txt = await asyncReadFile(txtFile, 'utf8');
-	return convertToASS(txt, { syllable_precision: true });
+	return convertToASS(txt, { syllable_precision: true, minimum_progression_duration });
 }
 
 if (require.main === module) mainCLI()

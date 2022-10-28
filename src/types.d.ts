@@ -1,6 +1,6 @@
 export interface SyllabesConfig {
-	offset?: number
-	syllable_precision?: boolean
+	syllable_precision?: boolean;
+	minimum_progression_duration?: number;
 }
 
 interface StyleElement {

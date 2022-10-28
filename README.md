@@ -22,16 +22,20 @@ As a module here's the method to use it :
 
 Returns a correctly formatted ASS file as a string. You need to provide the contents of the kbp TXT file as the first parameter and options as the second one.
 
-Options are valide SyllableJS options :
+Options are :
 
 ```JS
 {
   syllable_precision: boolean,
-  offset: number
+  minimum_progression_duration: number
+
 }
 ```
 
 You might want to set `syllable_precision` to `true` to get syllable-timed karaoke instead of sentence-timed karaoke
+
+`minimum_progression_duration` is a duration in milliseconds. 0 is everything is progressive syllabe.
+1000 is one second. By default, 500
 
 ### CLI
 
