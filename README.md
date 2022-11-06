@@ -35,7 +35,7 @@ Options are :
 You might want to set `syllable_precision` to `true` to get syllable-timed karaoke instead of sentence-timed karaoke
 
 `minimum_progression_duration` is a duration in milliseconds. 0 is everything is progressive syllabe.
-1000 is one second. By default, 500
+1000 is one second. By default, 1000
 
 ### CLI
 

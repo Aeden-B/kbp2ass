@@ -115,7 +115,7 @@ async function mainCLI() {
 	const txtFile = process.argv[2];
 
 	if (process.argv[3] && isNaN(parseInt(process.argv[3]))) throw 'minimum_progression_duration is not a number';
-	const minimum_progression_duration = process.argv[3] ? parseInt(process.argv[3]) : 500;
+	const minimum_progression_duration = process.argv[3] ? parseInt(process.argv[3]) : 1000;
 
 	if (!await asyncExists(txtFile)) throw `File ${txtFile} does not exist`;
 	const txt = await asyncReadFile(txtFile, 'utf8');
