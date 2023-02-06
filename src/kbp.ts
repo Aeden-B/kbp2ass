@@ -91,7 +91,14 @@ export default class KBPParser {
 				// second line of style
 				element = lines[i].trim().split(',');
 				style.Fontname = element[0];
-				style.Fontsize = element[1];
+
+				// Font size in .kbp refers to the cap height, whereas in .ass it
+				// refers to the line/body height. 1.5 seems to be correct or close
+				// for most normal fonts but ideally this should change to
+				// something like this example in Cairo:
+				// https://stackoverflow.com/questions/23252321/freetype-sizing-fonts-based-on-cap-height
+				style.Fontsize = parseInt(element[1]) * 1.5;
+
 				style.Bold = element[2] === 'B' ? -1 : 0;
 				style.Italic = element[2] === 'I' ? -1 : 0;
 				style.StrikeOut = element[2] === 'S' ? -1 : 0;

@@ -10,7 +10,7 @@ interface StyleElement {
 	OutlineColour: string;
 	BackColour: string;
 	Fontname?: string;
-	Fontsize?: string;
+	Fontsize?: number;
 	Bold?: number;
 	Italic?: number;
 	Underline?: number;
