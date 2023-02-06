@@ -109,7 +109,6 @@ export function convertToASS(time: string, options: SyllabesConfig): string {
 
 async function mainCLI() {
 
-
 	// Per yargs docs, use of terminalWidth() in typescript requires workaround
 	// of assigning a variable name to the instance so it can be referenced
 	const yargsInstance = yargs(hideBin(process.argv))
@@ -136,8 +135,12 @@ async function mainCLI() {
 		// Used for compatibility with old syntax allowing minimum-progression-duration as a positional
 		// .positional only includes items before --, so this is how to tell if the second argument is before -- or not
 		.command('* [compat1] [compat2]', false, function(yargs) {
-			yargs.positional('compat1', {})
-			     .positional('compat2', {});
+			yargs.positional('compat1', {
+				type: 'string'
+			})
+				.positional('compat2', {
+					type: 'string'
+				});
 		})
 		// Despite the fact that the second argument to .command is false,
 		// positionals on the "default" command are still shown unless explicitly hidden
@@ -158,6 +161,41 @@ async function mainCLI() {
 				description: 'Set threshold of syllable display time in milliseconds before using progressive wipe effect (implicit default 1000)',
 				type: 'number',
 				requiresArg: true
+			},
+			'full-mode': {
+				alias: 'f',
+				description: 'Enable processing of all positional and style information in the KBS project file (-w, -p, -b, -c). To unset any particular options use --no-{option}. For example, to run in full mode but with no border set, use "-f --no-b" or "--full-mode --no-border".',
+				type: 'boolean',
+				requiresArg: false,
+				nargs: 0
+			},
+			'cdg': {
+				alias: 'c',
+				description: 'Set the virtual resolution of the destination file to that of CDG graphics, enabling positioning, alignment, and font size to work as they do in KBS.',
+				type: 'boolean',
+				requiresArg: false,
+				nargs: 0
+			},
+			'wipe': {
+				alias: 'w',
+				description: 'Use wipe setting from project file (progressive wipe effect unless wiping is set to word by word). Sets -m to 0 if not otherwise set.',
+				type: 'boolean',
+				requiresArg: false,
+				nargs: 0
+			},
+			'position': {
+				alias: 'p',
+				description: 'Use position data from project file. This includes alignment as well as vertical/horizontal offset. Strongly recommended to use with -c option.',
+				type: 'boolean',
+				requiresArg: false,
+				nargs: 0
+			},
+			'border': {
+				alias: 'b',
+				description: 'Use default CDG border (12 pixels from top of screen). If -c option is used, these are virtual pixels. To use a custom border, set --no-border and add a border in your video editor of choice.',
+				type: 'boolean',
+				requiresArg: false,
+				nargs: 0
 			}
 		})
 		.strictOptions()
@@ -174,6 +212,21 @@ async function mainCLI() {
 
 		})
 		.middleware(function (argv) {
+			if (argv['full-mode']) {
+				argv = {
+					wipe: true,
+					position: true,
+					border: true,
+					cdg: true,
+					...argv
+				}
+			}
+			if (argv.wipe) {
+				argv = {
+					'minimum-progression-duration': 0,
+					...argv
+				}
+			}
 			if (argv.compat1) {
 				argv._.unshift(argv.compat1);
 				delete argv.compat1;
@@ -185,6 +238,13 @@ async function mainCLI() {
 					argv['minimum-progression-duration'] = argv.compat2;
 				}
 				delete argv.compat2;
+			}
+			// "default" functionality from yargs cannot be used because it doesn't show whether a user set the value or the default set it
+			const default_opts = ['wipe', 'position', 'border', 'cdg'];
+			for(let x in default_opts)
+			{
+				const opt = default_opts[x];
+				if (! (opt in argv)) argv[opt]=false;
 			}
 			if (! ('minimum-progression-duration' in argv)) {
 				argv['minimum-progression-duration']=1000;
