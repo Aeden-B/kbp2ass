@@ -39,13 +39,34 @@ You might want to set `syllable_precision` to `true` to get syllable-timed karao
 
 ### CLI
 
-The CLI version is used as follows :
+The CLI version has the following usage:
 
 ```sh
-kbp2ass myfile.txt
+kbp2ass [options] [--] [infile [outfile]]
+kbp2ass [options] infile minimum-progression-duration [--] [outfile]
+
+Convert file from KBS project format (.kbp) to SubStation Alpha subtitle (.ass)
+
+infile:	input file in .kbp format (stdin if not specified)
+outfile: output file in .ass format (stdout if not specified)
+
+For compatibility with older releases, minimum-progression-duration can be specified as a positional parameter instead of an option (if both are
+specified, the positional wins). If your output file name happens to be a number, use -- at some point before the second positional parameter to
+disable this functionality.
+
+Disable any boolean option with --no-[option]
+
+Options:
+      --help                                            Show help
+      --version                                         Show version number
+  -s, --syllable-precision                              Highlight syllables individually instead of combining lines into a single string.
+                                                        Disabling this is not recommended. (default: true)
+  -m, --minimum-progression-duration, --wipe-threshold  Set threshold of syllable display time in milliseconds before using progressive wipe
+                                                        effect (implicit default 1000)
+
 ```
 
-It produces an ASS file on stdout.
+stdin support is currently only available on \*nix platforms. outfile support is not yet implemented.
 
 ## Build
 
