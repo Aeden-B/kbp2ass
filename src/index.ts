@@ -2,31 +2,46 @@
 import { asyncExists, asyncReadFile, clone, msToAss } from './utils';
 import KBPParser from './kbp';
 import stringify from 'ass-stringify';
-import { StyleElement, SyllabesConfig } from './types';
+import { StyleElement, ConverterConfig } from './types';
 import ass = require('./assTemplate');
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-function generateASSLine(line: any, options: SyllabesConfig) {
+function generateASSLine(line: any, options: ConverterConfig) {
 	const ASSLine = [];
 	let startMs = line.start;
-	const stopMs = line.end + 100;
-	line.syllables.forEach((syl: any) => ASSLine.push(
-		(syl.text.startsWith(' ') && ASSLine.length > 0 ? ' ' : '')
-		+ '{\\k'
-		+ getProgressive(syl, options)
-		+ Math.floor(syl.duration / 10)
-		+ '}'
-		+ syl.text.trim()
-		+ (syl.text.endsWith(' ') ? ' ' : '')
-	));
+	const stopMs = line.end;
+	let firstStart = null;
+  let lastSylEnd = null;
+  let gap = null;
+	line.syllables.forEach((syl: any) => {
+    if(lastSylEnd != null && syl.start - lastSylEnd > 10) {
+      gap = '{\\k' + ((syl.start - lastSylEnd) / 10) + '}';
+    } else {
+      gap = ''
+    }
+		ASSLine.push(
+      gap
+			+ '{\\k'
+			+ getProgressive(syl, options)
+			+ Math.floor(syl.duration / 10)
+			+ '}'
+			+ syl.text
+		)
+		if (firstStart == null) firstStart=syl.start
+    lastSylEnd = syl.end;
+		});
 	const dialogue = clone(ass.dialogue);
 	const comment = clone(ass.dialogue);
-	dialogue.value.Start = msToAss(startMs - 900 < 0 ? 0 : startMs - 900);
+	dialogue.value.Start = msToAss(startMs);
 	comment.value.Start = msToAss(startMs);
 	dialogue.value.End = msToAss(stopMs);
 	comment.value.End = msToAss(stopMs);
-	dialogue.value.Text = '{\\k' + (startMs - 900 < 0 ? (900 - startMs) / 10 : 100) + ass.dialogueScript + ASSLine.join('');
+  // Horizontal offset only makes sense when there is a set number of pixels to center across
+  const hOffset = (options.cdg || line.alignment != 8) ? line.hpos : 0;
+  const pos = options.position ? '\\pos(' + hOffset + ',' + line.vpos + ')' : '';
+  // TODO: only use \anX when it differs from style? Currently line only stores style name, and style detail is not passed in.
+	dialogue.value.Text = '{\\an'+line.alignment+pos+'\\k' + ((firstStart - startMs) / 10) + ass.dialogueScript + ASSLine.join('');
 	dialogue.value.Effect = 'fx';
 	dialogue.value.Style = line.currentStyle;
 	comment.value.Text = ASSLine.join('');
@@ -39,8 +54,20 @@ function generateASSLine(line: any, options: SyllabesConfig) {
 	};
 }
 
-function getProgressive(syl: any, options: SyllabesConfig) {
-	return Math.floor(syl.duration / 10) > Math.floor(options.minimum_progression_duration / 10) ? 'f' : '';
+function getProgressive(syl: any, options: ConverterConfig) {
+  // When duration exceeds the threshold, progressive wiping may be possible
+	if (Math.floor(syl.duration / 10) > Math.floor(options['minimum-progression-duration'] / 10)) {
+    // If option is set to use wiping setting from the kbp file, do so, otherwise set unconditionally
+    if (options.wipe) {
+      return syl.wipeProgressive ? 'f' : '';
+    } else {
+      return 'f';
+    }
+    // If duration does not exceed the threshold, progressive wiping cannot be
+    // used, regardless of kbp setting
+  } else {
+    return '';
+  }
 }
 
 function sortStartTime(a: any, b: any) {
@@ -82,7 +109,7 @@ function getStyleAss(style: StyleElement) {
 }
 
 /** Convert KBP data (txt) to ASS */
-export function convertToASS(time: string, options: SyllabesConfig): string {
+export function convertToASS(time: string, options: ConverterConfig): string {
 	const kbp = new KBPParser(options);
 	const kara = kbp.parse(time);
 	const dialogues = [];
@@ -104,7 +131,16 @@ export function convertToASS(time: string, options: SyllabesConfig): string {
 	dialogues.sort(sortStartTime);
 	const events = clone(ass.events);
 	events.body = events.body.concat(comments, dialogues);
-	return stringify([ass.scriptInfo, styles, events]);
+	const header = clone(ass.scriptInfo);
+	if(options['cdg']) {
+		if (options['border']) {
+			header.body.push({key: 'PlayResX', value: 300}, {key: 'PlayResY', value: 216})
+		}
+		else {
+			header.body.push({key: 'PlayResX', value: 288}, {key: 'PlayResY', value: 192})
+		}
+	}
+	return stringify([header, styles, events]);
 }
 
 async function mainCLI() {
@@ -122,16 +158,16 @@ async function mainCLI() {
 		})
 		// Unable to use .positional handling because yargs inexplicably treats "$0 foo bar" differently from "$0 -- foo bar"
 		.usage(`$0 [options] [--] [infile [outfile]]
-		        $0 [options] infile minimum-progression-duration [--] [outfile] 
+						$0 [options] infile minimum-progression-duration [--] [outfile] 
 
-		        Convert file from KBS project format (.kbp) to SubStation Alpha subtitle (.ass)
+						Convert file from KBS project format (.kbp) to SubStation Alpha subtitle (.ass)
 
-		        infile:	input file in .kbp format (stdin if not specified)
-		        outfile: output file in .ass format (stdout if not specified)
+						infile:	input file in .kbp format (stdin if not specified)
+						outfile: output file in .ass format (stdout if not specified)
 
-		        For compatibility with older releases, minimum-progression-duration can be specified as a positional parameter instead of an option (if both are specified, the positional wins). If your output file name happens to be a number, use -- at some point before the second positional parameter to disable this functionality.
+						For compatibility with older releases, minimum-progression-duration can be specified as a positional parameter instead of an option (if both are specified, the positional wins). If your output file name happens to be a number, use -- at some point before the second positional parameter to disable this functionality.
 
-		        Disable any boolean option with --no-[option]`)
+						Disable any boolean option with --no-[option]`)
 		// Used for compatibility with old syntax allowing minimum-progression-duration as a positional
 		// .positional only includes items before --, so this is how to tell if the second argument is before -- or not
 		.command('* [compat1] [compat2]', false, function(yargs) {
@@ -227,20 +263,20 @@ async function mainCLI() {
 					...argv
 				}
 			}
-			if (argv.compat1) {
-				argv._.unshift(argv.compat1);
-				delete argv.compat1;
-			}
-			if (argv.compat2) {
+			if ('compat2' in argv) {
 				if (isNaN(parseInt(argv.compat2))) {
-					argv._.unshift(argv.compat1);
+					argv._.unshift(argv.compat2);
 				} else {
-					argv['minimum-progression-duration'] = argv.compat2;
+					argv['minimum-progression-duration'] = parseInt(argv.compat2);
 				}
 				delete argv.compat2;
 			}
+			if ('compat1' in argv) {
+				argv._.unshift(argv.compat1);
+				delete argv.compat1;
+			}
 			// "default" functionality from yargs cannot be used because it doesn't show whether a user set the value or the default set it
-			const default_opts = ['wipe', 'position', 'border', 'cdg'];
+			const default_opts = ['wipe', 'position', 'border', 'cdg', 'full-mode'];
 			for(let x in default_opts)
 			{
 				const opt = default_opts[x];
@@ -254,20 +290,22 @@ async function mainCLI() {
 		.wrap(yargsInstance.terminalWidth())
 		.argv;
 
-	argv.infile = argv._.shift() || '-';
-	argv.outfile = argv._.shift() || '-';
+	let infile = argv._.shift() || '-';
+	const outfile = argv._.shift() || '-';
+
+	delete argv._;
+	delete argv['$0'];
 
 	// This should be updated to work on Windows, but it would involve some extra
 	// work because even though readFile can take a file descriptor, it doesn't seem
 	// to work as expected with process.stdin.fd
-	if (argv.infile == '-') argv.infile = '/dev/stdin';
+	if (infile == '-') infile = '/dev/stdin';
 
-	const minimum_progression_duration = Math.floor(argv['minimum-progression-duration']);
+	if(! await asyncExists(infile)) throw `File ${infile} does not exist`;
+	const txt = await asyncReadFile(infile, 'utf8');
 
-	if(! await asyncExists(argv.infile)) throw `File ${argv.infile} does not exist`;
-	const txt = await asyncReadFile(argv.infile, 'utf8');
-
-	return convertToASS(txt, { syllable_precision: argv['syllable-precision'], minimum_progression_duration });
+	return convertToASS(txt, argv);
+	console.log(outfile);
 }
 
 if (require.main === module) mainCLI()

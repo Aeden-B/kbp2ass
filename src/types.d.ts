@@ -1,6 +1,11 @@
-export interface SyllabesConfig {
-	syllable_precision?: boolean;
-	minimum_progression_duration?: number;
+export interface ConverterConfig {
+	'full-mode'?: boolean;
+	'syllable-precision'?: boolean;
+	'wipe'?: boolean;
+	'position'?: boolean;
+	'border'?: boolean;
+	'cdg'?: boolean;
+	'minimum-progression-duration'?: number;
 }
 
 interface StyleElement {
@@ -21,5 +26,5 @@ interface StyleElement {
 	Alignment?: number;
 }
 
-export function convertToASS(time: string, options: SyllabesConfig): string
+export function convertToASS(time: string, options: ConverterConfig): string
 

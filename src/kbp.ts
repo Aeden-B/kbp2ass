@@ -1,13 +1,13 @@
-import { StyleElement, SyllabesConfig } from './types';
+import { StyleElement, ConverterConfig } from './types';
 
 
 export default class KBPParser {
 
-	config: SyllabesConfig;
+	config: ConverterConfig;
 	track: any;
 	styles: StyleElement[] = [];
 
-	constructor(config: SyllabesConfig) {
+	constructor(config: ConverterConfig) {
 		this.config = config;
 		this.track = [];
 	}
@@ -58,20 +58,48 @@ export default class KBPParser {
 		let colours = null;			// list of colours
 		let currentStyle: string = null;	// Current style
 
+    // Below are defaults from KBS, they should get replaced by the Margins config line
+    let leftMargin = 2;
+    let rightMargin = 2;
+    let topMargin = 7 + (this.config.border ? 12 : 0); // margin from KBS plus CDG top border
+    let lineSpacing = 12 + 19; // the effective line spacing seems to add 19 pixels to the value set in KBS
+
+    const totalWidth = this.config.border ? 300 : 288;
+    
+    // not set until a page starts
+    let currentPos = null;
+    let currentOffset = null;
+    let horizontalPos = null;
+    let currentAlignment = null;
+    let defaultWipeProgressive = null;
+
 		// We split blocks by PAGEV2, and ignore the first one (it is header)
 		let blockcount = 0;
 
 		// Parse each line of the file until the end
 		for (let i = 0; i < lines.length; i++) {
 			// Delete the trailing spaces
-			let line: string = lines[i].trim();
+			let line: string = lines[i].trimEnd();
 
-			if (line == 'PAGEV2' && blockcount === 0) {
+			if (line == 'PAGEV2') {
 				blockcount++;
+				currentPos = topMargin - lineSpacing // line is read before the applicable syllables start, so it will add back lineSpacing
 				continue;
 			}
 
-			if (line.match(/Palette Colours/g)?.length > 0) {
+      if (line.match(/^'Margins/)?.length > 0) {
+        i++;
+        [leftMargin, rightMargin, topMargin, lineSpacing] = lines[i].trim().split(',').map(x => parseInt(x));
+        topMargin += (this.config.border ? 12 : 0);
+        lineSpacing += 19;
+      }
+
+      if (line.match(/^'Other/)?.length > 0) {
+        i++;
+        defaultWipeProgressive = (lines[i].trim().split(',')[1] == '5' ? false : true);
+      }
+
+			if (line.match(/^'Palette Colours/)?.length > 0) {
 				i++;
 				colours = lines[i].trim().split(',');
 				continue;
@@ -113,17 +141,30 @@ export default class KBPParser {
 				continue;
 			}
 
+
 			// Ignore everything before the first block
 			if (blockcount == 0) {
 				continue;
 			}
 
+      // TODO: fixed text (lowercase style)
+      // TODO: rotation
+      // TODO: transitions?
 			if (line.match(/[LCR]\/[A-Za-z]/g)?.length > 0) {
 				let element = line.split('/');
+				currentPos += lineSpacing;
+        currentOffset = parseInt(element[5]);
+        currentAlignment = this.getAlignement(element[0]);
+        horizontalPos = (currentAlignment - 7) * totalWidth / 2 + parseInt(element[4]) +
+                        (8 - currentAlignment) * (
+                          (currentAlignment == 7 ? leftMargin : rightMargin) + 
+                          (this.config.border ? 6 : 0));
 				if (element[2] !== '0' && element[3] !== '0') {
-					this.styles[element[1].toUpperCase().charCodeAt(0) - 65].Alignment = this.getAlignement(element[0]);
+					this.styles[element[1].toUpperCase().charCodeAt(0) - 65].Alignment = currentAlignment;
 					currentStyle = this.styles[element[1].toUpperCase().charCodeAt(0) - 65].Name;
 				}
+				currentStart = Math.floor(parseInt(element[2]) * 10);
+				currentEnd = Math.floor(parseInt(element[3]) * 10);
 				continue;
 			}
 
@@ -136,7 +177,7 @@ export default class KBPParser {
 			if (line.replace(/\s*/g, '').length == 0) {
 				if (syllables.length > 0) {
 					// Create a new sentence
-					let sentence = this.makeSentence(sentenceID, syllables, currentStart, currentEnd, currentStyle);
+					let sentence = this.makeSentence(sentenceID, syllables, currentStart, currentEnd, currentStyle, currentPos + currentOffset, horizontalPos, currentAlignment);
 
 					currentStart = null;
 					currentEnd = null;
@@ -167,13 +208,16 @@ export default class KBPParser {
 				// Add the start time of the syllable
 				syllable.start = Math.floor(parseInt(matches[1].trim()) * 10);
 				// Add the duration, end time
-				syllable.duration = Math.floor((parseInt(matches[2]) - parseInt(matches[1])) * 10);
 				syllable.end = Math.floor(parseInt(matches[2].trim()) * 10);
+				syllable.duration = syllable.end - syllable.start;
 
-				if (syllables.length === 0) {
-					currentStart = syllable.start;
-				}
-				currentEnd = syllable.end;
+        let wipeType = parseInt(matches[3].trim());
+        if(wipeType == 0) {
+          syllable.wipeProgressive = defaultWipeProgressive;
+        } else {
+          syllable.wipeProgressive = (wipeType == 5 ? false : true);
+        }
+
 
 				if (syllable.start !== 0 || syllable.end !== 0) {
 					// Add the syllable
@@ -193,17 +237,23 @@ export default class KBPParser {
 	 * @param {any[]}  syllables   Syllables list of the sentence
 	 * @param {number} start       Start time of the sentence
 	 * @param {number} end         End time of the sentence
+	 * @param {number} vpos        Vertical position to draw sentence
+	 * @param {number} hpos        Horizontal position to draw sentence
+	 * @param {number} alignment   Text alignment of sentence
 	 */
-	private makeSentence(id: number, syllables: any[], start: number, end: number, currentStyle: string) {
+	private makeSentence(id: number, syllables: any[], start: number, end: number, currentStyle: string, vpos: number, hpos: number, alignment: number) {
 		var sentence: any = {
 			id: id,
 			start: syllables[0].start,
 			end: syllables[syllables.length - 1].end,
-			currentStyle: currentStyle
+			currentStyle: currentStyle,
+      vpos: vpos,
+      hpos: hpos,
+      alignment: alignment
 		};
 
 		// Insert sentence syllables as objects or as a string
-		if (this.config.syllable_precision) {
+		if (this.config['syllable-precision']) {
 			sentence.syllables = syllables;
 		} else {
 			sentence.text = '';
