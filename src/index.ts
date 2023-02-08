@@ -12,16 +12,16 @@ function generateASSLine(line: any, options: ConverterConfig) {
 	let startMs = line.start;
 	const stopMs = line.end;
 	let firstStart = null;
-  let lastSylEnd = null;
-  let gap = null;
+	let lastSylEnd = null;
+	let gap = null;
 	line.syllables.forEach((syl: any) => {
-    if(lastSylEnd != null && syl.start - lastSylEnd > 10) {
-      gap = '{\\k' + ((syl.start - lastSylEnd) / 10) + '}';
-    } else {
-      gap = ''
-    }
+		if(lastSylEnd != null && syl.start - lastSylEnd > 10) {
+			gap = '{\\k' + ((syl.start - lastSylEnd) / 10) + '}';
+		} else {
+			gap = ''
+		}
 		ASSLine.push(
-      gap
+			gap
 			+ '{\\k'
 			+ getProgressive(syl, options)
 			+ Math.floor(syl.duration / 10)
@@ -29,7 +29,7 @@ function generateASSLine(line: any, options: ConverterConfig) {
 			+ syl.text
 		)
 		if (firstStart == null) firstStart=syl.start
-    lastSylEnd = syl.end;
+		lastSylEnd = syl.end;
 		});
 	const dialogue = clone(ass.dialogue);
 	const comment = clone(ass.dialogue);
@@ -37,10 +37,10 @@ function generateASSLine(line: any, options: ConverterConfig) {
 	comment.value.Start = msToAss(startMs);
 	dialogue.value.End = msToAss(stopMs);
 	comment.value.End = msToAss(stopMs);
-  // Horizontal offset only makes sense when there is a set number of pixels to center across
-  const hOffset = (options.cdg || line.alignment != 8) ? line.hpos : 0;
-  const pos = options.position ? '\\pos(' + hOffset + ',' + line.vpos + ')' : '';
-  // TODO: only use \anX when it differs from style? Currently line only stores style name, and style detail is not passed in.
+	// Horizontal offset only makes sense when there is a set number of pixels to center across
+	const hOffset = (options.cdg || line.alignment != 8) ? line.hpos : 0;
+	const pos = options.position ? '\\pos(' + hOffset + ',' + line.vpos + ')' : '';
+	// TODO: only use \anX when it differs from style? Currently line only stores style name, and style detail is not passed in.
 	dialogue.value.Text = '{\\an'+line.alignment+pos+'\\k' + ((firstStart - startMs) / 10) + ass.dialogueScript + ASSLine.join('');
 	dialogue.value.Effect = 'fx';
 	dialogue.value.Style = line.currentStyle;
@@ -55,19 +55,19 @@ function generateASSLine(line: any, options: ConverterConfig) {
 }
 
 function getProgressive(syl: any, options: ConverterConfig) {
-  // When duration exceeds the threshold, progressive wiping may be possible
+	// When duration exceeds the threshold, progressive wiping may be possible
 	if (Math.floor(syl.duration / 10) > Math.floor(options['minimum-progression-duration'] / 10)) {
-    // If option is set to use wiping setting from the kbp file, do so, otherwise set unconditionally
-    if (options.wipe) {
-      return syl.wipeProgressive ? 'f' : '';
-    } else {
-      return 'f';
-    }
-    // If duration does not exceed the threshold, progressive wiping cannot be
-    // used, regardless of kbp setting
-  } else {
-    return '';
-  }
+		// If option is set to use wiping setting from the kbp file, do so, otherwise set unconditionally
+		if (options.wipe) {
+			return syl.wipeProgressive ? 'f' : '';
+		} else {
+			return 'f';
+		}
+		// If duration does not exceed the threshold, progressive wiping cannot be
+		// used, regardless of kbp setting
+	} else {
+		return '';
+	}
 }
 
 function sortStartTime(a: any, b: any) {
@@ -162,7 +162,7 @@ async function mainCLI() {
 
 						Convert file from KBS project format (.kbp) to SubStation Alpha subtitle (.ass)
 
-						infile:	input file in .kbp format (stdin if not specified)
+						infile:  input file in .kbp format (stdin if not specified)
 						outfile: output file in .ass format (stdout if not specified)
 
 						For compatibility with older releases, minimum-progression-duration can be specified as a positional parameter instead of an option (if both are specified, the positional wins). If your output file name happens to be a number, use -- at some point before the second positional parameter to disable this functionality.

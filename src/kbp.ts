@@ -40,7 +40,7 @@ export default class KBPParser {
 	 */
 	parse(file: string) {
 
-		// Lyric match regex like ZA/            592/622/0
+		// Lyric match regex like ZA/						592/622/0
 		let regex = /(.*)\/ *([0-9]+)\/([0-9]+)\/([0-9]+)/g;
 
 		if (file.match(regex).length === 0) {
@@ -58,20 +58,20 @@ export default class KBPParser {
 		let colours = null;			// list of colours
 		let currentStyle: string = null;	// Current style
 
-    // Below are defaults from KBS, they should get replaced by the Margins config line
-    let leftMargin = 2;
-    let rightMargin = 2;
-    let topMargin = 7 + (this.config.border ? 12 : 0); // margin from KBS plus CDG top border
-    let lineSpacing = 12 + 19; // the effective line spacing seems to add 19 pixels to the value set in KBS
+		// Below are defaults from KBS, they should get replaced by the Margins config line
+		let leftMargin = 2;
+		let rightMargin = 2;
+		let topMargin = 7 + (this.config.border ? 12 : 0); // margin from KBS plus CDG top border
+		let lineSpacing = 12 + 19; // the effective line spacing seems to add 19 pixels to the value set in KBS
 
-    const totalWidth = this.config.border ? 300 : 288;
-    
-    // not set until a page starts
-    let currentPos = null;
-    let currentOffset = null;
-    let horizontalPos = null;
-    let currentAlignment = null;
-    let defaultWipeProgressive = null;
+		const totalWidth = this.config.border ? 300 : 288;
+		
+		// not set until a page starts
+		let currentPos = null;
+		let currentOffset = null;
+		let horizontalPos = null;
+		let currentAlignment = null;
+		let defaultWipeProgressive = null;
 
 		// We split blocks by PAGEV2, and ignore the first one (it is header)
 		let blockcount = 0;
@@ -87,17 +87,17 @@ export default class KBPParser {
 				continue;
 			}
 
-      if (line.match(/^'Margins/)?.length > 0) {
-        i++;
-        [leftMargin, rightMargin, topMargin, lineSpacing] = lines[i].trim().split(',').map(x => parseInt(x));
-        topMargin += (this.config.border ? 12 : 0);
-        lineSpacing += 19;
-      }
+			if (line.match(/^'Margins/)?.length > 0) {
+				i++;
+				[leftMargin, rightMargin, topMargin, lineSpacing] = lines[i].trim().split(',').map(x => parseInt(x));
+				topMargin += (this.config.border ? 12 : 0);
+				lineSpacing += 19;
+			}
 
-      if (line.match(/^'Other/)?.length > 0) {
-        i++;
-        defaultWipeProgressive = (lines[i].trim().split(',')[1] == '5' ? false : true);
-      }
+			if (line.match(/^'Other/)?.length > 0) {
+				i++;
+				defaultWipeProgressive = (lines[i].trim().split(',')[1] == '5' ? false : true);
+			}
 
 			if (line.match(/^'Palette Colours/)?.length > 0) {
 				i++;
@@ -147,18 +147,18 @@ export default class KBPParser {
 				continue;
 			}
 
-      // TODO: fixed text (lowercase style)
-      // TODO: rotation
-      // TODO: transitions?
+			// TODO: fixed text (lowercase style)
+			// TODO: rotation
+			// TODO: transitions?
 			if (line.match(/[LCR]\/[A-Za-z]/g)?.length > 0) {
 				let element = line.split('/');
 				currentPos += lineSpacing;
-        currentOffset = parseInt(element[5]);
-        currentAlignment = this.getAlignement(element[0]);
-        horizontalPos = (currentAlignment - 7) * totalWidth / 2 + parseInt(element[4]) +
-                        (8 - currentAlignment) * (
-                          (currentAlignment == 7 ? leftMargin : rightMargin) + 
-                          (this.config.border ? 6 : 0));
+				currentOffset = parseInt(element[5]);
+				currentAlignment = this.getAlignement(element[0]);
+				horizontalPos = (currentAlignment - 7) * totalWidth / 2 + parseInt(element[4]) +
+												(8 - currentAlignment) * (
+													(currentAlignment == 7 ? leftMargin : rightMargin) + 
+													(this.config.border ? 6 : 0));
 				if (element[2] !== '0' && element[3] !== '0') {
 					this.styles[element[1].toUpperCase().charCodeAt(0) - 65].Alignment = currentAlignment;
 					currentStyle = this.styles[element[1].toUpperCase().charCodeAt(0) - 65].Name;
@@ -211,12 +211,12 @@ export default class KBPParser {
 				syllable.end = Math.floor(parseInt(matches[2].trim()) * 10);
 				syllable.duration = syllable.end - syllable.start;
 
-        let wipeType = parseInt(matches[3].trim());
-        if(wipeType == 0) {
-          syllable.wipeProgressive = defaultWipeProgressive;
-        } else {
-          syllable.wipeProgressive = (wipeType == 5 ? false : true);
-        }
+				let wipeType = parseInt(matches[3].trim());
+				if(wipeType == 0) {
+					syllable.wipeProgressive = defaultWipeProgressive;
+				} else {
+					syllable.wipeProgressive = (wipeType == 5 ? false : true);
+				}
 
 
 				if (syllable.start !== 0 || syllable.end !== 0) {
@@ -233,13 +233,13 @@ export default class KBPParser {
 
 	/**
 	 * Make a new sentence
-	 * @param {number} id          ID of the sentence
-	 * @param {any[]}  syllables   Syllables list of the sentence
-	 * @param {number} start       Start time of the sentence
-	 * @param {number} end         End time of the sentence
-	 * @param {number} vpos        Vertical position to draw sentence
-	 * @param {number} hpos        Horizontal position to draw sentence
-	 * @param {number} alignment   Text alignment of sentence
+   * @param {number} id          ID of the sentence
+   * @param {any[]}  syllables   Syllables list of the sentence
+   * @param {number} start       Start time of the sentence
+   * @param {number} end         End time of the sentence
+   * @param {number} vpos        Vertical position to draw sentence
+   * @param {number} hpos        Horizontal position to draw sentence
+   * @param {number} alignment   Text alignment of sentence
 	 */
 	private makeSentence(id: number, syllables: any[], start: number, end: number, currentStyle: string, vpos: number, hpos: number, alignment: number) {
 		var sentence: any = {
@@ -247,9 +247,9 @@ export default class KBPParser {
 			start: syllables[0].start,
 			end: syllables[syllables.length - 1].end,
 			currentStyle: currentStyle,
-      vpos: vpos,
-      hpos: hpos,
-      alignment: alignment
+			vpos: vpos,
+			hpos: hpos,
+			alignment: alignment
 		};
 
 		// Insert sentence syllables as objects or as a string
