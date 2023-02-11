@@ -116,7 +116,12 @@ export function convertToASS(time: string, options: ConverterConfig): string {
 	const comments = [];
 
 	const styles = clone(ass.styles);
-	styles.body = styles.body.concat(kbp.styles.length > 0 ? kbp.styles.map(style => getStyleAss(style)) :	[ass.defaultStyle]);
+	styles.body = styles.body.concat(kbp.styles.length > 0 ?
+		kbp.styles
+			.filter(style => style !== undefined)
+			.map(style => getStyleAss(style)) :	
+		[ass.defaultStyle]
+	);
 	const script = clone(ass.dialogue);
 	script.value.Effect = ass.scriptFX;
 	script.value.Text = ass.script;
@@ -158,16 +163,16 @@ async function mainCLI() {
 		})
 		// Unable to use .positional handling because yargs inexplicably treats "$0 foo bar" differently from "$0 -- foo bar"
 		.usage(`$0 [options] [--] [infile [outfile]]
-						$0 [options] infile minimum-progression-duration [--] [outfile] 
+		        $0 [options] infile minimum-progression-duration [--] [outfile] 
 
-						Convert file from KBS project format (.kbp) to SubStation Alpha subtitle (.ass)
+		        Convert file from KBS project format (.kbp) to SubStation Alpha subtitle (.ass)
 
-						infile:  input file in .kbp format (stdin if not specified)
-						outfile: output file in .ass format (stdout if not specified)
+		        infile:  input file in .kbp format (stdin if not specified)
+		        outfile: output file in .ass format (stdout if not specified)
 
-						For compatibility with older releases, minimum-progression-duration can be specified as a positional parameter instead of an option (if both are specified, the positional wins). If your output file name happens to be a number, use -- at some point before the second positional parameter to disable this functionality.
+		        For compatibility with older releases, minimum-progression-duration can be specified as a positional parameter instead of an option (if both are specified, the positional wins). If your output file name happens to be a number, use -- at some point before the second positional parameter to disable this functionality.
 
-						Disable any boolean option with --no-[option]`)
+		        Disable any boolean option with --no-[option]`)
 		// Used for compatibility with old syntax allowing minimum-progression-duration as a positional
 		// .positional only includes items before --, so this is how to tell if the second argument is before -- or not
 		.command('* [compat1] [compat2]', false, function(yargs) {

@@ -105,7 +105,10 @@ export default class KBPParser {
 				continue;
 			}
 
-			if (line.match(/Style[0-1][0-9]/g)?.length > 0) {
+			let matches = line.match(/Style([0-1][0-9])/)
+			if (matches?.length > 0) {
+				// Style numbers can be skipped and possibly don't even need to be sequential
+				let index = parseInt(matches[1]);
 				// first line of style
 				let element = line.split(',');
 				let style: StyleElement = {
@@ -137,7 +140,7 @@ export default class KBPParser {
 				element = lines[i].trim().split(',');
 				style.Outline = parseInt(element[0]);
 				style.Shadow = parseInt(element[4]);
-				this.styles.push(style);
+				this.styles[index] = style;
 				continue;
 			}
 
@@ -215,7 +218,7 @@ export default class KBPParser {
 				if(wipeType == 0) {
 					syllable.wipeProgressive = defaultWipeProgressive;
 				} else {
-					syllable.wipeProgressive = (wipeType == 5 ? false : true);
+					syllable.wipeProgressive = (wipeType >= 5 ? false : true);
 				}
 
 
@@ -233,13 +236,13 @@ export default class KBPParser {
 
 	/**
 	 * Make a new sentence
-   * @param {number} id          ID of the sentence
-   * @param {any[]}  syllables   Syllables list of the sentence
-   * @param {number} start       Start time of the sentence
-   * @param {number} end         End time of the sentence
-   * @param {number} vpos        Vertical position to draw sentence
-   * @param {number} hpos        Horizontal position to draw sentence
-   * @param {number} alignment   Text alignment of sentence
+	 * @param {number} id          ID of the sentence
+	 * @param {any[]}  syllables   Syllables list of the sentence
+	 * @param {number} start       Start time of the sentence
+	 * @param {number} end         End time of the sentence
+	 * @param {number} vpos        Vertical position to draw sentence
+	 * @param {number} hpos        Horizontal position to draw sentence
+	 * @param {number} alignment   Text alignment of sentence
 	 */
 	private makeSentence(id: number, syllables: any[], start: number, end: number, currentStyle: string, vpos: number, hpos: number, alignment: number) {
 		var sentence: any = {
