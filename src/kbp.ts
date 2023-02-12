@@ -72,6 +72,7 @@ export default class KBPParser {
 		let horizontalPos = null;
 		let currentAlignment = null;
 		let defaultWipeProgressive = null;
+		let fixed = null;
 
 		// We split blocks by PAGEV2, and ignore the first one (it is header)
 		let blockcount = 0;
@@ -91,6 +92,8 @@ export default class KBPParser {
 				i++;
 				[leftMargin, rightMargin, topMargin, lineSpacing] = lines[i].trim().split(',').map(x => parseInt(x));
 				topMargin += (this.config.border ? 12 : 0);
+				// TODO: determine the correct value based on style 0 (style 1 in GUI)
+				// 19 is correct for Arial 12 bold, Arial 13, and Arial 13 bold
 				lineSpacing += 19;
 			}
 
@@ -123,12 +126,13 @@ export default class KBPParser {
 				element = lines[i].trim().split(',');
 				style.Fontname = element[0];
 
+				// TODO: improve this based on font used
 				// Font size in .kbp refers to the cap height, whereas in .ass it
-				// refers to the line/body height. 1.5 seems to be correct or close
+				// refers to the line/body height. 1.4 seems to be close
 				// for most normal fonts but ideally this should change to
 				// something like this example in Cairo:
 				// https://stackoverflow.com/questions/23252321/freetype-sizing-fonts-based-on-cap-height
-				style.Fontsize = parseInt(element[1]) * 1.5;
+				style.Fontsize = parseInt(element[1]) * 1.4;
 
 				style.Bold = element[2] === 'B' ? -1 : 0;
 				style.Italic = element[2] === 'I' ? -1 : 0;
@@ -150,7 +154,6 @@ export default class KBPParser {
 				continue;
 			}
 
-			// TODO: fixed text (lowercase style)
 			// TODO: rotation
 			// TODO: transitions?
 			if (line.match(/[LCR]\/[A-Za-z]/g)?.length > 0) {
@@ -166,6 +169,7 @@ export default class KBPParser {
 					this.styles[element[1].toUpperCase().charCodeAt(0) - 65].Alignment = currentAlignment;
 					currentStyle = this.styles[element[1].toUpperCase().charCodeAt(0) - 65].Name;
 				}
+				fixed = (element[1].toLowerCase() == element[1]);
 				currentStart = Math.floor(parseInt(element[2]) * 10);
 				currentEnd = Math.floor(parseInt(element[3]) * 10);
 				continue;
@@ -209,9 +213,14 @@ export default class KBPParser {
 				syllable.text = matches[0];
 
 				// Add the start time of the syllable
-				syllable.start = Math.floor(parseInt(matches[1].trim()) * 10);
+
+				// TODO: Better handling of fixed text. Currently this will just set
+				// the time before wiping starts to be the duration of the line to stop it
+				// from ever wiping but ideally there should be a fixed version of the
+				// style that does not even use \k or \kf
+				syllable.start = fixed ? currentEnd : Math.floor(parseInt(matches[1].trim()) * 10);
 				// Add the duration, end time
-				syllable.end = Math.floor(parseInt(matches[2].trim()) * 10);
+				syllable.end = fixed ? syllable.start : Math.floor(parseInt(matches[2].trim()) * 10);
 				syllable.duration = syllable.end - syllable.start;
 
 				let wipeType = parseInt(matches[3].trim());
