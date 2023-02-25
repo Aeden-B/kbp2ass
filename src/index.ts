@@ -151,12 +151,16 @@ export function convertToASS(time: string, options: ConverterConfig): string {
 	events.body = events.body.concat(comments, dialogues);
 	const header = clone(ass.scriptInfo);
 	if(options['cdg']) {
-		if (options['border']) {
-			header.body.push({key: 'PlayResX', value: 300}, {key: 'PlayResY', value: 216})
+		let PlayResX=288;
+		let PlayResY=192;
+		if(options['border']) {
+			PlayResX=300;
+			PlayResY=216;
 		}
-		else {
-			header.body.push({key: 'PlayResX', value: 288}, {key: 'PlayResY', value: 192})
+		if('width' in options) {
+			PlayResX=options.width;
 		}
+		header.body.push({key: 'PlayResX', value: PlayResX}, {key: 'PlayResY', value: PlayResY});
 	}
 	return stringify([header, styles, events]);
 }
@@ -257,23 +261,37 @@ async function mainCLI() {
 				type: 'string',
 				requiresArg: true,
 				nargs: 1
+			},
+			'width': {
+				alias: 'W',
+				description: 'Override the width in the virtual resolution. E.g. set to 384 to get 16:9 aspect ratio if border is enabled, and 341 if it\'s not. This only has any effect with the --cdg option enabled.',
+				type: 'number',
+				requiresArg: true,
+				nargs: 1
 			}
 		})
 		.strictOptions()
 		.check(function (argv) {
+			let err=false;
 			let f = argv['fade']?.split(',');
 			// Setting the type only makes it parse it as a number, it doesn't validate the result
 			if(isNaN(argv['minimum-progression-duration'])) {
 				throw new Error('--minimum-progression-duration must be a number');
+				err=true;
 			}
-			else if (argv._.length > 2) {
+			if('width' in argv && (isNaN(argv['width']) || ! Number.isInteger(argv['width']) || argv['width'] < 1)) {
+				throw new Error('--width must be a positive integer');
+				err=true;
+			}
+			if (argv._.length > 2) {
 				throw new Error('Maximum of 2 files may be specified (infile and outfile)');
-			} else if (f.length < 1 || f.length > 2 || f.some(x=>isNaN(parseInt(x)) || parseInt(x) < 0)){
-				throw new Error('--fade must have 1-2 non-negative integer fade durations specified');
-			} else {
-				return true;
+				err=true;
 			}
-
+			if (f.length < 1 || f.length > 2 || f.some(x=>isNaN(parseInt(x)) || parseInt(x) < 0)){
+				throw new Error('--fade must have 1-2 non-negative integer fade durations specified');
+				err=true;
+			}
+			return !err;
 		})
 		.middleware(function (argv) {
 			if (argv['full-mode']) {

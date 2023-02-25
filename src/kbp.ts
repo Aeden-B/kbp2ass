@@ -64,7 +64,7 @@ export default class KBPParser {
 		let topMargin = 7 + (this.config.border ? 12 : 0); // margin from KBS plus CDG top border
 		let lineSpacing = 12 + 19; // the effective line spacing seems to add 19 pixels to the value set in KBS
 
-		const totalWidth = this.config.border ? 300 : 288;
+		const totalWidth = this.config.width || (this.config.border ? 300 : 288);
 		
 		// not set until a page starts
 		let currentPos = null;
