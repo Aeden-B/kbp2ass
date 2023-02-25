@@ -41,7 +41,7 @@ function generateASSLine(line: any, options: ConverterConfig) {
 	const hOffset = (options.cdg || line.alignment != 8) ? line.hpos : 0;
 	const pos = options.position ? '\\pos(' + hOffset + ',' + line.vpos + ')' : '';
 	// TODO: only use \anX when it differs from style? Currently line only stores style name, and style detail is not passed in.
-	dialogue.value.Text = '{\\an'+line.alignment+pos+'\\k' + ((firstStart - startMs) / 10) + ass.dialogueScript + ASSLine.join('');
+	dialogue.value.Text = `{\\an${line.alignment}${pos}\\k${(firstStart - startMs) / 10}${options.dialogueScript}}` + ASSLine.join('');
 	dialogue.value.Effect = 'fx';
 	dialogue.value.Style = line.currentStyle;
 	comment.value.Text = ASSLine.join('');
@@ -52,6 +52,16 @@ function generateASSLine(line: any, options: ConverterConfig) {
 		dialogue,
 		comment
 	};
+}
+
+function fadeToDialogueScript(fade: string) {
+	let [fade_in, fade_out] = fade.split(',').map(x=>parseInt(x));
+	if(fade_out === undefined) fade_out=fade_in;
+	if(fade_in == 0 && fade_out == 0) {
+		return '';
+	} else {
+		return `\\fad(${fade_in},${fade_out})`;
+	}
 }
 
 function getProgressive(syl: any, options: ConverterConfig) {
@@ -122,6 +132,9 @@ export function convertToASS(time: string, options: ConverterConfig): string {
 			.map(style => getStyleAss(style)) :	
 		[ass.defaultStyle]
 	);
+	if (! ('dialogueScript' in options)) {
+		options.dialogueScript = ass.dialogueScript;
+	}
 	const script = clone(ass.dialogue);
 	script.value.Effect = ass.scriptFX;
 	script.value.Text = ass.script;
@@ -237,16 +250,26 @@ async function mainCLI() {
 				type: 'boolean',
 				requiresArg: false,
 				nargs: 0
+			},
+			'fade': {
+				alias: 'F',
+				description: 'Fade-in/out duration for line display in milliseconds. Defaults to 300,200. If only one number is specified it is used for both fade in and out. If 0 or 0,0 is specified, fade effect is disabled entirely.',
+				type: 'string',
+				requiresArg: true,
+				nargs: 1
 			}
 		})
 		.strictOptions()
 		.check(function (argv) {
+			let f = argv['fade']?.split(',');
 			// Setting the type only makes it parse it as a number, it doesn't validate the result
 			if(isNaN(argv['minimum-progression-duration'])) {
 				throw new Error('--minimum-progression-duration must be a number');
 			}
 			else if (argv._.length > 2) {
 				throw new Error('Maximum of 2 files may be specified (infile and outfile)');
+			} else if (f.length < 1 || f.length > 2 || f.some(x=>isNaN(parseInt(x)) || parseInt(x) < 0)){
+				throw new Error('--fade must have 1-2 non-negative integer fade durations specified');
 			} else {
 				return true;
 			}
@@ -290,6 +313,9 @@ async function mainCLI() {
 			if (! ('minimum-progression-duration' in argv)) {
 				argv['minimum-progression-duration']=1000;
 			} 
+			if (! ('fade' in argv)) {
+				argv['fade']="300,200";
+			} 
 			return argv;
 		}, true)
 		.wrap(yargsInstance.terminalWidth())
@@ -300,6 +326,9 @@ async function mainCLI() {
 
 	delete argv._;
 	delete argv['$0'];
+
+	argv.dialogueScript = fadeToDialogueScript(argv.fade);
+	delete argv.fade;
 
 	// This should be updated to work on Windows, but it would involve some extra
 	// work because even though readFile can take a file descriptor, it doesn't seem
