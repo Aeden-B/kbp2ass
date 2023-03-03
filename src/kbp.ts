@@ -73,6 +73,7 @@ export default class KBPParser {
 		let currentAlignment = null;
 		let defaultWipeProgressive = null;
 		let fixed = null;
+		let rotation = null;
 
 		// We split blocks by PAGEV2, and ignore the first one (it is header)
 		let blockcount = 0;
@@ -154,12 +155,12 @@ export default class KBPParser {
 				continue;
 			}
 
-			// TODO: rotation
 			// TODO: transitions?
 			if (line.match(/[LCR]\/[A-Za-z]/g)?.length > 0) {
 				let element = line.split('/');
 				currentPos += lineSpacing;
 				currentOffset = parseInt(element[5]);
+				rotation = parseInt(element[6]);
 				currentAlignment = this.getAlignement(element[0]);
 				horizontalPos = (currentAlignment - 7) * totalWidth / 2 + parseInt(element[4]) +
 												(8 - currentAlignment) * (
@@ -184,7 +185,7 @@ export default class KBPParser {
 			if (line.replace(/\s*/g, '').length == 0) {
 				if (syllables.length > 0) {
 					// Create a new sentence
-					let sentence = this.makeSentence(sentenceID, syllables, currentStart, currentEnd, currentStyle, currentPos + currentOffset, horizontalPos, currentAlignment);
+					let sentence = this.makeSentence(sentenceID, syllables, currentStart, currentEnd, currentStyle, currentPos + currentOffset, horizontalPos, currentAlignment, rotation);
 
 					currentStart = null;
 					currentEnd = null;
@@ -256,7 +257,7 @@ export default class KBPParser {
 	 * @param {number} hpos        Horizontal position to draw sentence
 	 * @param {number} alignment   Text alignment of sentence
 	 */
-	private makeSentence(id: number, syllables: any[], start: number, end: number, currentStyle: string, vpos: number, hpos: number, alignment: number) {
+	private makeSentence(id: number, syllables: any[], start: number, end: number, currentStyle: string, vpos: number, hpos: number, alignment: number, rotation: number) {
 		var sentence: any = {
 			id: id,
 			start: syllables[0].start,
@@ -264,7 +265,8 @@ export default class KBPParser {
 			currentStyle: currentStyle,
 			vpos: vpos,
 			hpos: hpos,
-			alignment: alignment
+			alignment: alignment,
+      rotation: rotation
 		};
 
 		// Insert sentence syllables as objects or as a string
