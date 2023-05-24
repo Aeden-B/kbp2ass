@@ -6,8 +6,9 @@ export interface ConverterConfig {
 	'border'?: boolean;
 	'cdg'?: boolean;
 	'minimum-progression-duration'?: number;
-  'dialogueScript'?: string;
-  'width'?: number;
+	'dialogueScript'?: string;
+	'width'?: number;
+	'transparency'?: boolean;
 }
 
 interface StyleElement {

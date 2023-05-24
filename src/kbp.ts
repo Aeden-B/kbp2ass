@@ -12,14 +12,17 @@ export default class KBPParser {
 		this.track = [];
 	}
 
-	getSixDigitHexColor(hexcolor: string) {
-		// If a three-character hexcolor, make six-character
-		if (hexcolor.length === 3) {
-			hexcolor = hexcolor.split('').reverse().map(function (hex) {
-				return hex + hex;
-			}).join('');
-		}
-		return hexcolor;
+  // Convert a 3-hex-digit RGB color to an 8-digit ABGR (backwards RGBA)
+	kbp2AssColor(palette: string[], index: number) {
+		// If transparency mode is on, if the palette color used is the background
+		// (always index 0 in kbp format), do not display (full transparency)
+    let start = '&H00'
+		if(index == 0 && this.config.transparency) {
+			start = '&HFF'
+		} 
+    return start + palette[index].split('').reverse().map(function (hex) {
+      return hex + hex;
+    }).join('');
 	}
 
 	getAlignement(element: string) {
@@ -117,10 +120,10 @@ export default class KBPParser {
 				let element = line.split(',');
 				let style: StyleElement = {
 					Name: `${element[0]}_${element[1]}`,
-					PrimaryColour: `&H00${this.getSixDigitHexColor(colours[element[4]])}`,
-					SecondaryColour: `&H00${this.getSixDigitHexColor(colours[element[2]])}`,
-					OutlineColour: `&H00${this.getSixDigitHexColor(colours[element[3]])}`,
-					BackColour: `&H00${this.getSixDigitHexColor(colours[element[5]])}`
+					PrimaryColour: this.kbp2AssColor(colours, parseInt(element[4])),
+					SecondaryColour: this.kbp2AssColor(colours, parseInt(element[2])),
+					OutlineColour: this.kbp2AssColor(colours, parseInt(element[3])),
+					BackColour: this.kbp2AssColor(colours, parseInt(element[5]))
 				};
 				i++;
 				// second line of style

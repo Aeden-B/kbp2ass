@@ -224,7 +224,7 @@ async function mainCLI() {
 			},
 			'full-mode': {
 				alias: 'f',
-				description: 'Enable processing of all positional and style information in the KBS project file (-w, -p, -b, -c). To unset any particular options use --no-{option}. For example, to run in full mode but with no border set, use "-f --no-b" or "--full-mode --no-border".',
+				description: 'Enable processing of all positional and style information in the KBS project file (-w, -p, -b, -c, -t). To unset any particular options use --no-{option}. For example, to run in full mode but with no border set, use "-f --no-b" or "--full-mode --no-border".',
 				type: 'boolean',
 				requiresArg: false,
 				nargs: 0
@@ -270,6 +270,13 @@ async function mainCLI() {
 				type: 'number',
 				requiresArg: true,
 				nargs: 1
+			},
+			'transparency': {
+				alias: 't',
+				description: 'When using palette color 0, always treat it as transparent. This more closely models the behavior KBS uses when generating a CDG, because drawing in the background color XORs with 0, thus not updating the screen. This setting will only be noticeable if you overlap text or render the .ass against a different background color than is defined in the kbp file (or overlay an image/video).',
+				type: 'boolean',
+				requiresArg: false,
+				nargs: 0
 			}
 		})
 		.strictOptions()
@@ -302,6 +309,7 @@ async function mainCLI() {
 					position: true,
 					border: true,
 					cdg: true,
+					transparency: true,
 					...argv
 				}
 			}
@@ -324,7 +332,7 @@ async function mainCLI() {
 				delete argv.compat1;
 			}
 			// "default" functionality from yargs cannot be used because it doesn't show whether a user set the value or the default set it
-			const default_opts = ['wipe', 'position', 'border', 'cdg', 'full-mode'];
+			const default_opts = ['wipe', 'position', 'border', 'cdg', 'full-mode', 'transparency'];
 			for(let x in default_opts)
 			{
 				const opt = default_opts[x];
