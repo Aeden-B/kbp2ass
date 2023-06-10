@@ -163,6 +163,13 @@ export function convertToASS(time: string, options: ConverterConfig): string {
 
 async function mainCLI() {
 
+  // TODO: Either 1) only read the file in if track_offset is needed or 2) find other necessary settings to read
+  let track_offset = 0;
+  if ('APPDATA' in process.env && await asyncExists(process.env.APPDATA + '/Karaoke Builder/data_studio.ini')) {
+      let settings = await asyncReadFile(process.env.APPDATA + '/Karaoke Builder/data_studio.ini', 'utf8');
+      track_offset = parseFloat(settings.match(/^setoffset\s+(\S+)/m)[1]) / 100;
+  }
+
 	// Per yargs docs, use of terminalWidth() in typescript requires workaround
 	// of assigning a variable name to the instance so it can be referenced
 	const yargsInstance = yargs(hideBin(process.argv))
@@ -264,7 +271,13 @@ async function mainCLI() {
 				type: 'boolean',
 				requiresArg: false,
 				nargs: 0
-			}
+			},
+      'offset': {
+        alias: 'o',
+        description: 'Amount of seconds to adjust the timings in the .ass file. This can be used to match the offset configured in the KBS Studio Settings or to add time for an intro video. A negative number means to adjust the timings to occur before the time specified in the .kbp file. If not specified, the program will attempt to read from the KBS configuration file in %AppData%\\Karaoke Builder\\data_studio.ini. If unable, it will be set to 0. Note that the default setting in KBS is -0.2 seconds, but it is recommended to set it to 0 to make the .kbp files contain the true timing. If this offset would make any display/remove or wipe timings negative, those become 0.',
+        type: 'number',
+        requiresArg: true
+      }
 		})
 		.strictOptions()
 		.check(function (argv) {
@@ -324,10 +337,15 @@ async function mainCLI() {
 			if (! ('fade' in argv)) {
 				argv['fade']="300,200";
 			} 
+      if (! ('offset' in argv)) {
+        argv['offset']= track_offset || 0;
+      }
 			return argv;
 		}, true)
 		.wrap(yargsInstance.terminalWidth())
 		.argv;
+  
+  console.error("offset is: " + argv.offset);
 
 	let infile = argv._.shift() || '-';
 	const outfile = argv._.shift() || '-';

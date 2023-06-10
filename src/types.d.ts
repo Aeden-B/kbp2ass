@@ -8,6 +8,7 @@ export interface ConverterConfig {
 	'minimum-progression-duration'?: number;
   'dialogueScript'?: string;
 	'transparency'?: boolean;
+  'offset'?: number;
 }
 
 interface StyleElement {

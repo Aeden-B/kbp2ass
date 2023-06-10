@@ -77,6 +77,8 @@ export default class KBPParser {
 		let defaultWipeProgressive = null;
 		let fixed = null;
 
+    let offsetms = Math.floor(this.config.offset * 1000);
+
 		// We split blocks by PAGEV2, and ignore the first one (it is header)
 		let blockcount = 0;
 
@@ -173,8 +175,10 @@ export default class KBPParser {
 					currentStyle = this.styles[element[1].toUpperCase().charCodeAt(0) - 65].Name;
 				}
 				fixed = (element[1].toLowerCase() == element[1]);
-				currentStart = Math.floor(parseInt(element[2]) * 10);
-				currentEnd = Math.floor(parseInt(element[3]) * 10);
+				currentStart = Math.floor(parseInt(element[2]) * 10) + offsetms;
+        if (currentStart < 0) currentStart = 0;
+				currentEnd = Math.floor(parseInt(element[3]) * 10) + offsetms;
+        if (currentEnd < 0) currentEnd = 0;
 				continue;
 			}
 
@@ -224,9 +228,11 @@ export default class KBPParser {
 				// the time before wiping starts to be the duration of the line to stop it
 				// from ever wiping but ideally there should be a fixed version of the
 				// style that does not even use \k or \kf
-				syllable.start = fixed ? currentEnd : Math.floor(parseInt(matches[1].trim()) * 10);
+				syllable.start = fixed ? currentEnd : Math.floor(parseInt(matches[1].trim()) * 10 + offsetms);
+        if (syllable.start < 0) syllable.start = 0;
 				// Add the duration, end time
-				syllable.end = fixed ? syllable.start : Math.floor(parseInt(matches[2].trim()) * 10);
+				syllable.end = fixed ? syllable.start : Math.floor(parseInt(matches[2].trim()) * 10 + offsetms);
+        if (syllable.end < 0) syllable.end = 0;
 				syllable.duration = syllable.end - syllable.start;
 
 				let wipeType = parseInt(matches[3].trim());
