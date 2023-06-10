@@ -9,6 +9,7 @@ export interface ConverterConfig {
 	'dialogueScript'?: string;
 	'width'?: number;
 	'transparency'?: boolean;
+  'offset'?: number;
 }
 
 interface StyleElement {
