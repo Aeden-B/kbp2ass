@@ -1,58 +1,8 @@
 #!/usr/bin/env node
-import { asyncExists, asyncReadFile, clone, msToAss } from './utils';
-import KBPParser from './kbp';
-import stringify from 'ass-stringify';
-import { StyleElement, ConverterConfig } from './types';
-import ass = require('./assTemplate');
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
-
-function generateASSLine(line: any, options: ConverterConfig) {
-	const ASSLine = [];
-	let startMs = line.start;
-	const stopMs = line.end;
-	let firstStart = null;
-	let lastSylEnd = null;
-	let gap = null;
-	line.syllables.forEach((syl: any) => {
-		if(lastSylEnd != null && syl.start - lastSylEnd > 10) {
-			gap = '{\\k' + ((syl.start - lastSylEnd) / 10) + '}';
-		} else {
-			gap = ''
-		}
-		ASSLine.push(
-			gap
-			+ '{\\k'
-			+ getProgressive(syl, options)
-			+ Math.floor(syl.duration / 10)
-			+ '}'
-			+ syl.text
-		)
-		if (firstStart == null) firstStart=syl.start
-		lastSylEnd = syl.end;
-		});
-	const dialogue = clone(ass.dialogue);
-	const comment = clone(ass.dialogue);
-	dialogue.value.Start = msToAss(startMs);
-	comment.value.Start = msToAss(startMs);
-	dialogue.value.End = msToAss(stopMs);
-	comment.value.End = msToAss(stopMs);
-	// Horizontal offset only makes sense when there is a set number of pixels to center across
-	const hOffset = (options.cdg || line.alignment != 8) ? line.hpos : 0;
-	const pos = options.position ? '\\pos(' + hOffset + ',' + line.vpos + ')' : '';
-	// TODO: only use \anX when it differs from style? Currently line only stores style name, and style detail is not passed in.
-	dialogue.value.Text = `{\\an${line.alignment}${pos}\\k${(firstStart - startMs) / 10}${options.dialogueScript}}` + ASSLine.join('');
-	dialogue.value.Effect = 'fx';
-	dialogue.value.Style = line.currentStyle;
-	comment.value.Text = ASSLine.join('');
-	comment.value.Effect = 'karaoke';
-	comment.key = 'Comment';
-	comment.value.Style = line.currentStyle;
-	return {
-		dialogue,
-		comment
-	};
-}
+import  yargs from "yargs";
+import { hideBin } from "yargs/helpers";
+import { readFileSync } from "node:fs";
+import { convertToASS } from "./ass";
 
 function fadeToDialogueScript(fade: string) {
 	let [fade_in, fade_out] = fade.split(',').map(x=>parseInt(x));
@@ -64,110 +14,18 @@ function fadeToDialogueScript(fade: string) {
 	}
 }
 
-function getProgressive(syl: any, options: ConverterConfig) {
-	// When duration exceeds the threshold, progressive wiping may be possible
-	if (Math.floor(syl.duration / 10) > Math.floor(options['minimum-progression-duration'] / 10)) {
-		// If option is set to use wiping setting from the kbp file, do so, otherwise set unconditionally
-		if (options.wipe) {
-			return syl.wipeProgressive ? 'f' : '';
-		} else {
-			return 'f';
-		}
-		// If duration does not exceed the threshold, progressive wiping cannot be
-		// used, regardless of kbp setting
-	} else {
-		return '';
-	}
-}
-
-function sortStartTime(a: any, b: any) {
-	if (a.value.Start < b.value.Start) return -1;
-	if (a.value.Start > b.value.Start) return 1;
-	return 0;
-}
-
-function getStyleAss(style: StyleElement) {
-	return {
-		key: 'Style',
-		value: {
-			'Name': 'Default',
-			'Fontname': 'Arial',
-			'Fontsize': '24',
-			'PrimaryColour': '&H00FFFFFF',
-			'SecondaryColour': '&H000088EF',
-			'OutlineColour': '&H00000000',
-			'BackColour': '&H00666666',
-			'Bold': '-1',
-			'Italic': '0',
-			'Underline': '0',
-			'StrikeOut': '0',
-			'ScaleX': '100',
-			'ScaleY': '100',
-			'Spacing': '0',
-			'Angle': '0',
-			'BorderStyle': '1',
-			'Outline': '1.5',
-			'Shadow': '0',
-			'Alignment': '8',
-			'MarginL': '0',
-			'MarginR': '0',
-			'MarginV': '20',
-			'Encoding': '1',
-			...style
-		}
-	};
-}
-
-/** Convert KBP data (txt) to ASS */
-export function convertToASS(time: string, options: ConverterConfig): string {
-	const kbp = new KBPParser(options);
-	const kara = kbp.parse(time);
-	const dialogues = [];
-	const comments = [];
-
-	const styles = clone(ass.styles);
-	styles.body = styles.body.concat(kbp.styles.length > 0 ?
-		kbp.styles
-			.filter(style => style !== undefined)
-			.map(style => getStyleAss(style)) :	
-		[ass.defaultStyle]
-	);
-	if (! ('dialogueScript' in options)) {
-		options.dialogueScript = ass.dialogueScript;
-	}
-	const script = clone(ass.dialogue);
-	script.value.Effect = ass.scriptFX;
-	script.value.Text = ass.script;
-	script.key = 'Comment';
-	comments.push(script);
-	for (const line of kara.track) {
-		const ASSLines = generateASSLine(line, options);
-		comments.push(clone(ASSLines.comment));
-		dialogues.push(clone(ASSLines.dialogue));
-	}
-	comments.sort(sortStartTime);
-	dialogues.sort(sortStartTime);
-	const events = clone(ass.events);
-	events.body = events.body.concat(comments, dialogues);
-	const header = clone(ass.scriptInfo);
-	if(options['cdg']) {
-		if (options['border']) {
-			header.body.push({key: 'PlayResX', value: 300}, {key: 'PlayResY', value: 216})
-		}
-		else {
-			header.body.push({key: 'PlayResX', value: 288}, {key: 'PlayResY', value: 192})
-		}
-	}
-	return stringify([header, styles, events]);
-}
-
 async function mainCLI() {
 
   // TODO: Either 1) only read the file in if track_offset is needed or 2) find other necessary settings to read
   let track_offset = 0;
-  if ('APPDATA' in process.env && await asyncExists(process.env.APPDATA + '/Karaoke Builder/data_studio.ini')) {
-      let settings = await asyncReadFile(process.env.APPDATA + '/Karaoke Builder/data_studio.ini', 'utf8');
-      track_offset = parseFloat(settings.match(/^setoffset\s+(\S+)/m)[1]) / 100;
+  if ('APPDATA' in process.env ) {
+	try {
+		const settings = readFileSync(process.env.APPDATA + '/Karaoke Builder/data_studio.ini', 'utf8');
+		track_offset = parseFloat(settings.match(/^setoffset\s+(\S+)/m)[1]) / 100;
+	} catch (error) {
+		
+	}
+
   }
 
 	// Per yargs docs, use of terminalWidth() in typescript requires workaround
@@ -348,7 +206,7 @@ async function mainCLI() {
   console.error("offset is: " + argv.offset);
 
 	let infile = argv._.shift() || '-';
-	const outfile = argv._.shift() || '-';
+	// const outfile = argv._.shift() || '-';
 
 	delete argv._;
 	delete argv['$0'];
@@ -361,11 +219,9 @@ async function mainCLI() {
 	// to work as expected with process.stdin.fd
 	if (infile == '-') infile = '/dev/stdin';
 
-	if(! await asyncExists(infile)) throw `File ${infile} does not exist`;
-	const txt = await asyncReadFile(infile, 'utf8');
+	const txt = readFileSync(infile, 'utf8');
 
 	return convertToASS(txt, argv);
-	console.log(outfile);
 }
 
 if (require.main === module) mainCLI()
