@@ -27,7 +27,7 @@ function generateASSLine(line: ISentence, options: IConfig) {
     assLine.push(
       `${gap}{\\k${getProgressive(syl, options)}${Math.floor(
         syl.duration / 10
-      )}${syl.text}}`
+      )}}${syl.text}`
     );
 
     if (firstStart == null) firstStart = syl.start;
@@ -49,9 +49,9 @@ function generateASSLine(line: ISentence, options: IConfig) {
   const pos = options.position ? `\\pos(${hOffset},${line.vpos})` : "";
 
   // TODO: only use \anX when it differs from style? Currently line only stores style name, and style detail is not passed in.
-  dialogue.value.Text = `\\an${line.alignment}${pos}\\k${
+  dialogue.value.Text = `{\\an${line.alignment}${pos}\\k${
     (firstStart - startMs) / 10
-  }${ass.dialogueScript}${assLine.join("")}`;
+  }${options.dialogueScript}}${assLine.join("")}`;
   dialogue.value.Effect = "fx";
 
   return {
@@ -105,12 +105,16 @@ export function convertToASS(time: string, options: IConfig) {
       : [{ ...ass.defaultStyle }]
   );
 
+  if (! ('dialogueScript' in options)) {
+    options.dialogueScript = ass.dialogueScript;
+}
+
   comments.push({
     key: "Comment",
     value: {
       ...ass.defaultDialogue.value,
       Effect: ass.scriptFX,
-      Text: ass.scriptFX,
+      Text: ass.script,
     },
   });
   for (const line of kara.track) {
