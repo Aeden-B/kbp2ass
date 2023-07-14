@@ -1,25 +1,21 @@
-import { StyleElement, ConverterConfig } from './types';
+import { IStyle, IConfig, ISentence, ISyllable } from "./types";
 
 
 export default class KBPParser {
+  config: IConfig;
+  track: ISentence[] | undefined;
+  styles: IStyle[] = [];
 
-	config: ConverterConfig;
-	track: any;
-	styles: StyleElement[] = [];
-
-	constructor(config: ConverterConfig) {
-		this.config = config;
-		this.track = [];
-	}
+  constructor(config: IConfig) {
+    this.config = config;
+    this.track = [];
+  }
 
   // Convert a 3-hex-digit RGB color to an 8-digit ABGR (backwards RGBA)
 	kbp2AssColor(palette: string[], index: number) {
 		// If transparency mode is on, if the palette color used is the background
 		// (always index 0 in kbp format), do not display (full transparency)
-    let start = '&H00'
-		if(index == 0 && this.config.transparency) {
-			start = '&HFF'
-		} 
+    const start = index == 0 && this.config.transparency?  '&HFF':'&H00' ;
     return start + palette[index].split('').reverse().map(function (hex) {
       return hex + hex;
     }).join('');
@@ -120,7 +116,7 @@ export default class KBPParser {
 				let index = parseInt(matches[1]);
 				// first line of style
 				let element = line.split(',');
-				let style: StyleElement = {
+				let style: IStyle = {
 					Name: `${element[0]}_${element[1]}`,
 					PrimaryColour: this.kbp2AssColor(colours, parseInt(element[4])),
 					SecondaryColour: this.kbp2AssColor(colours, parseInt(element[2])),
@@ -256,51 +252,46 @@ export default class KBPParser {
 		};
 	}
 
-	/**
-	 * Make a new sentence
-	 * @param {number} id          ID of the sentence
-	 * @param {any[]}  syllables   Syllables list of the sentence
-	 * @param {number} start       Start time of the sentence
-	 * @param {number} end         End time of the sentence
-	 * @param {number} vpos        Vertical position to draw sentence
-	 * @param {number} hpos        Horizontal position to draw sentence
-	 * @param {number} alignment   Text alignment of sentence
-	 */
-	private makeSentence(id: number, syllables: any[], start: number, end: number, currentStyle: string, vpos: number, hpos: number, alignment: number, rotation: number) {
-		var sentence: any = {
-			id: id,
-			start: syllables[0].start,
-			end: syllables[syllables.length - 1].end,
-			currentStyle: currentStyle,
-			vpos: vpos,
-			hpos: hpos,
-			alignment: alignment,
-      rotation: rotation
-		};
-
-		// Insert sentence syllables as objects or as a string
-		if (this.config['syllable-precision']) {
-			sentence.syllables = syllables;
-		} else {
-			sentence.text = '';
-			for (var j = 0; j < syllables.length; j++) {
-				sentence.text += syllables[j].text;
-			}
-		}
-
-		// Add the start of the sentence if it was present on the last "sentence end" line
-		if (start != null) {
-			sentence.start = start;
-		}
-
-		// Add the end of the sentence if any
-		if (end != null) {
-			sentence.end = end;
-		}
-
-		// Set the duration with start and end
-		sentence.duration = sentence.end - sentence.start;
-
-		return sentence;
-	}
+  /**
+   * Make a new sentence
+   * @param {number} id          ID of the sentence
+   * @param {ISyllable[]}  syllables   Syllables list of the sentence
+   * @param {number} start       Start time of the sentence
+   * @param {number} end         End time of the sentence
+   * @param {number} vpos        Vertical position to draw sentence
+   * @param {number} hpos        Horizontal position to draw sentence
+   * @param {number} alignment   Text alignment of sentence
+   * @param {number} rotation    Rotation of the text in degrees
+   */
+  private makeSentence(
+    id: number,
+    syllables: ISyllable[],
+    start: number,
+    end: number,
+    currentStyle: string,
+    vpos: number,
+    hpos: number,
+    alignment: number,
+    rotation: number
+  ): ISentence {
+    start = start ?? syllables[0].start;
+    end = end ?? syllables[syllables.length - 1].end;
+    const duration = end - start;
+    return {
+      id,
+      start,
+      end,
+      duration,
+      currentStyle,
+      vpos,
+      hpos,
+      alignment,
+      // Insert sentence syllables as objects or as a string
+      syllables: this.config["syllable-precision"] ? syllables : undefined,
+      text: this.config["syllable-precision"]
+        ? ""
+        : syllables.map(s => s.text).join(""),
+      rotation
+    };
+  }
 }
