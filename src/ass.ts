@@ -19,20 +19,25 @@ function generateASSLine(line: ISentence, options: IConfig) {
   let firstStart = null;
   let lastSylEnd = null;
   let gap = null;
-  line.syllables.forEach(syl => {
-    gap =
-      lastSylEnd != null && syl.start - lastSylEnd > 10
-        ? `{\\k${(syl.start - lastSylEnd) / 10}}`
-        : "";
-    assLine.push(
-      `${gap}{\\k${getProgressive(syl, options)}${Math.floor(
-        syl.duration / 10
-      )}}${syl.text}`
-    );
+  if(line.syllables) {
+    line.syllables.forEach(syl => {
+      gap =
+        lastSylEnd != null && syl.start - lastSylEnd > 10
+          ? `{\\k${(syl.start - lastSylEnd) / 10}}`
+          : "";
+      assLine.push(
+        `${gap}{\\k${getProgressive(syl, options)}${Math.floor(
+          syl.duration / 10
+        )}}${syl.text}`
+      );
 
-    if (firstStart == null) firstStart = syl.start;
-    lastSylEnd = syl.end;
-  });
+      if (firstStart == null) firstStart = syl.start;
+      lastSylEnd = syl.end;
+    });
+  } else {
+    assLine.push(line.text);
+    firstStart=line.end; // Emulate "fixed text" and use the text style rather than the wipe style
+  }
   const dialogue = clone(ass.defaultDialogue);
 
   dialogue.value.Start = msToAss(startMs);
