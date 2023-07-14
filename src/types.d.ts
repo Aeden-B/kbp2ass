@@ -79,7 +79,7 @@ interface IConfig {
 	syllables: ISyllable[];
 	start: number;
 	end: number;
-	currentStyle: string;
+	styleName: string;
 	vpos: number;
 	hpos: number;
 	alignment: number;
