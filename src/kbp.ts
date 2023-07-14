@@ -55,7 +55,7 @@ export default class KBPParser {
 		let currentEnd = null;		// End of the previous sentence (milliseconds)
 		let syllables = [];			// Syllables list of the current sentence
 		let colours = null;			// list of colours
-		let currentStyle: string = null;	// Current style
+		let currentStyle: IStyle = null;	// Current style
 
 		// Below are defaults from KBS, they should get replaced by the Margins config line
 		let leftMargin = 2;
@@ -167,8 +167,8 @@ export default class KBPParser {
 													(currentAlignment == 7 ? leftMargin : rightMargin) + 
 													(this.config.border ? 6 : 0));
 				if (element[2] !== '0' && element[3] !== '0') {
-					this.styles[element[1].toUpperCase().charCodeAt(0) - 65].Alignment = currentAlignment;
-					currentStyle = this.styles[element[1].toUpperCase().charCodeAt(0) - 65].Name;
+					currentStyle = this.styles[element[1].toUpperCase().charCodeAt(0) - 65] ?? this.styles[0];
+					currentStyle.Alignment = currentAlignment;
 				}
 				fixed = (element[1].toLowerCase() == element[1]);
 				currentStart = Math.floor(parseInt(element[2]) * 10) + offsetms;
@@ -187,7 +187,7 @@ export default class KBPParser {
 			if (line.replace(/\s*/g, '').length == 0) {
 				if (syllables.length > 0) {
 					// Create a new sentence
-					let sentence = this.makeSentence(sentenceID, syllables, currentStart, currentEnd, currentStyle, currentPos + currentOffset, horizontalPos, currentAlignment);
+					let sentence = this.makeSentence(sentenceID, syllables, currentStart, currentEnd, currentStyle.Name, currentPos + currentOffset, horizontalPos, currentAlignment);
 
 					currentStart = null;
 					currentEnd = null;
@@ -266,7 +266,7 @@ export default class KBPParser {
     syllables: ISyllable[],
     start: number,
     end: number,
-    currentStyle: string,
+    styleName: string,
     vpos: number,
     hpos: number,
     alignment: number
@@ -279,7 +279,7 @@ export default class KBPParser {
       start,
       end,
       duration,
-      currentStyle,
+      styleName,
       vpos,
       hpos,
       alignment,

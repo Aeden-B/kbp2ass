@@ -42,7 +42,7 @@ function generateASSLine(line: ISentence, options: IConfig) {
 
   dialogue.value.Start = msToAss(startMs);
   dialogue.value.End = msToAss(stopMs);
-  dialogue.value.Style = line.currentStyle;
+  dialogue.value.Style = line.styleName;
 
   const comment: IDialogueKV<"Comment"> = {
     key: "Comment",
