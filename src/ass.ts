@@ -82,11 +82,11 @@ function getProgressive(syl: ISyllable, options: IConfig) {
   }
 }
 
-function sortStartTime<T>(a: IDialogueKV<T>, b: IDialogueKV<T>) {
-  if (a.value.Start < b.value.Start) return -1;
-  if (a.value.Start > b.value.Start) return 1;
-  return 0;
-}
+// function sortStartTime<T>(a: IDialogueKV<T>, b: IDialogueKV<T>) {
+//   if (a.value.Start < b.value.Start) return -1;
+//   if (a.value.Start > b.value.Start) return 1;
+//   return 0;
+// }
 
 function getStyleAss(style: IStyle): IStyleKV {
   return {
@@ -129,8 +129,10 @@ export function convertToASS(time: string, options: IConfig) {
     comments.push(clone(ASSLines.comment));
     dialogues.push(clone(ASSLines.dialogue));
   }
-  comments.sort(sortStartTime);
-  dialogues.sort(sortStartTime);
+  // Function seems to be unnecessary. And it removes functionality (implicit
+  // layering based on line/page order)
+  //comments.sort(sortStartTime);
+  //dialogues.sort(sortStartTime);
   const events: IEvents = {
     section: "Events",
     body: [...ass.events.body, ...comments, ...dialogues],
