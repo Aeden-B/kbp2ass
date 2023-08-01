@@ -215,9 +215,6 @@ export default class KBPParser {
 				// Get the syllable text
 				syllable.text = matches[0];
 
-				// A leading space at the start of a line needs to be replaced with a hard break to function
-				if(syllables.length == 0) syllable.text = syllable.text.replace(/^ /,'\\h');
-
 				// Add the start time of the syllable
 
 				// TODO: Better handling of fixed text. Currently this will just set

@@ -28,14 +28,14 @@ function generateASSLine(line: ISentence, options: IConfig) {
       assLine.push(
         `${gap}{\\k${getProgressive(syl, options)}${Math.floor(
           syl.duration / 10
-        )}}${escapeAss(syl.text)}`
+        )}}${escapeAss(syl.text, firstStart == null)}`
       );
 
       if (firstStart == null) firstStart = syl.start;
       lastSylEnd = syl.end;
     });
   } else {
-    assLine.push(escapeAss(line.text));
+    assLine.push(escapeAss(line.text, true));
     firstStart=line.end; // Emulate "fixed text" and use the text style rather than the wipe style
   }
   const dialogue = clone(ass.defaultDialogue);
@@ -70,14 +70,18 @@ function generateASSLine(line: ISentence, options: IConfig) {
 // Technically this should be two separate functions because {~} is a KBSism
 // and escaping of {} and handling of literal \n, \N, \h are .ass things, but
 // it was simpler just to make one.
-function escapeAss(text: string) {
+function escapeAss(text: string, first: boolean = false) {
 	// Literal / is encoded in .kbp as {~} since / is the end of syllable character
 	// {} must be escaped to avoid it being interpreted as a tag
 	// 0x200B is a zero-width space. There is nothing like \\ to insert a
 	//   literal \, so this is the best we can do to get a literal \n, \h, \N
-	return text.replace(/{~}/g, '/')
+	text = text.replace(/{~}/g, '/')
 	           .replace(/[{}]/g, '\\$&')
-		   .replace(/\\([nhN])/g, `\\${String.fromCharCode(0x200B)}$1`);
+		       .replace(/\\([nhN])/g, `\\${String.fromCharCode(0x200B)}$1`);
+    if(first) {
+        text = text.replace(/^ /, '\\h');
+    }
+    return text;
 }
 
 function getProgressive(syl: ISyllable, options: IConfig) {
