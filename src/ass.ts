@@ -50,13 +50,14 @@ function generateASSLine(line: ISentence, options: IConfig) {
   };
 
   // Horizontal offset only makes sense when there is a set number of pixels to center across
-  const hOffset = options.cdg || line.alignment != 8 ? line.hpos : 0;
+  // TODO: position = true, cdg = false, line.alignment = 0 (pull from style), style.alignment != 8 - style object currently not included in parameters
+  const hOffset = options.cdg || [0,8].includes(line.alignment) ? line.hpos : 0;
   const pos = options.position ? `\\pos(${hOffset},${line.vpos})` : "";
 	// TODO: calculate rotation origin if not left-aligned to match KBS?
 	const rot = options.position && line.rotation != 0 ? `\\frz${line.rotation}` : '';
 
   // TODO: only use \anX when it differs from style? Currently line only stores style name, and style detail is not passed in.
-  dialogue.value.Text = `{\\an${line.alignment}${pos}${rot}\\k${
+  dialogue.value.Text = `{${line.alignment == 0 ? '' : `\\an${line.alignment}`}${pos}${rot}\\k${
     (firstStart - startMs) / 10
   }${options.dialogueScript}}${assLine.join("")}`;
   dialogue.value.Effect = "fx";
