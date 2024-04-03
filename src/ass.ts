@@ -16,6 +16,8 @@ function generateASSLine(line: ISentence, options: IConfig) {
   const assLine = [];
   let startMs = line.start;
   const stopMs = line.end;
+  let display = options.display ?? 1000;
+  let remove = options.remove ?? 100;
   let firstStart = null;
   let lastSylEnd = null;
   let gap = null;
@@ -40,14 +42,19 @@ function generateASSLine(line: ISentence, options: IConfig) {
   }
   const dialogue = clone(ass.defaultDialogue);
 
-  dialogue.value.Start = msToAss(startMs);
-  dialogue.value.End = msToAss(stopMs);
+  // Comment starts exactly with syllables to allow for retiming
+  dialogue.value.Start = msToAss(firstStart);
+  dialogue.value.End = msToAss(remove == -1 ? stopMs : lastSylEnd + remove);
   dialogue.value.Style = line.styleName;
 
   const comment: IDialogueKV<"Comment"> = {
     key: "Comment",
     value: { ...dialogue.value, Text: assLine.join(""), Effect: "karaoke" },
   };
+
+  // Reset start time to actual display for the dialogue lines
+  if(display != -1) startMs = firstStart - display;
+  dialogue.value.Start = msToAss(startMs);
 
   // Horizontal offset only makes sense when there is a set number of pixels to center across
   // TODO: position = true, cdg = false, line.alignment = 0 (pull from style), style.alignment != 8 - style object currently not included in parameters

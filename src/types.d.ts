@@ -9,7 +9,9 @@ interface IConfig {
 	'dialogueScript'?: string;
 	'width'?: number;
 	'transparency'?: boolean;
-  'offset'?: number;
+	'offset'?: number;
+	'display'?: number;
+	'remove'?: number;
   }
   
   interface IStyle {
@@ -19,7 +21,7 @@ interface IConfig {
 	OutlineColour: string;
 	BackColour: string;
 	Fontname?: string;
-	Fontsize?: number;
+	Fontsize?: string;
 	Bold?: number;
 	Italic?: number;
 	Underline?: number;

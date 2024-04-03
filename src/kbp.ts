@@ -115,7 +115,7 @@ export default class KBPParser {
 				// Style numbers can be skipped and possibly don't even need to be sequential
 				let index = parseInt(matches[1]);
 				// first line of style
-				let element = line.split(',');
+				let element = line.trimStart().split(',');
 				let style: IStyle = {
 					Name: `${element[0]}_${element[1]}`,
 					PrimaryColour: this.kbp2AssColor(colours, parseInt(element[4])),
@@ -134,7 +134,10 @@ export default class KBPParser {
 				// for most normal fonts but ideally this should change to
 				// something like this example in Cairo:
 				// https://stackoverflow.com/questions/23252321/freetype-sizing-fonts-based-on-cap-height
-				style.Fontsize = parseInt(element[1]) * 1.4;
+                // Another option is adding a parameter for font scaling
+                // Note: using toFixed to make a reasonable-looking number for the .ass file
+                // even though something like 16.799999999999997 will technically work
+				style.Fontsize = (parseInt(element[1]) * 1.4).toFixed(2);
 
 				style.Bold = element[2] === 'B' ? -1 : 0;
 				style.Italic = element[2] === 'I' ? -1 : 0;

@@ -75,7 +75,7 @@ import type {
 	value: {
 	  Name: "Default",
 	  Fontname: "Arial",
-	  Fontsize: 24,
+	  Fontsize: "24",
 	  PrimaryColour: "&H00FFFFFF",
 	  SecondaryColour: "&H000088EF",
 	  OutlineColour: "&H00000000",

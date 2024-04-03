@@ -14,6 +14,12 @@ function fadeToDialogueScript(fade: string) {
 	}
 }
 
+function displayremoveToDisplayRemove(displayremove: string) {
+	let [display, remove] = displayremove.split(',').map(x=>parseInt(x));
+	if(remove === undefined) remove=display;
+	return [display, remove]
+}
+
 async function mainCLI() {
 
   // TODO: Either 1) only read the file in if track_offset is needed or 2) find other necessary settings to read
@@ -83,7 +89,7 @@ async function mainCLI() {
 			},
 			'full-mode': {
 				alias: 'f',
-				description: 'Enable processing of all positional and style information in the KBS project file (-w, -p, -b, -c, -t). To unset any particular options use --no-{option}. For example, to run in full mode but with no border set, use "-f --no-b" or "--full-mode --no-border".',
+				description: 'Enable processing of all positional and style information in the KBS project file (-w, -p, -b, -c, -t, -D -1). To unset any particular options use --no-{option}. For example, to run in full mode but with no border set, use "-f --no-b" or "--full-mode --no-border".',
 				type: 'boolean',
 				requiresArg: false,
 				nargs: 0
@@ -123,6 +129,13 @@ async function mainCLI() {
 				requiresArg: true,
 				nargs: 1
 			},
+			'displayremove': {
+				alias: 'D',
+				description: 'Timing for line display/remove in milliseconds. Defaults to 1000,100. Note that this time includes the fade, so e.g. fade in of 300 and display of 1000 means that the line fades in for 300ms, then continues displaying at full opacity for 700ms before wiping starts. If only one number is specified it is used for both display and remove. If -1 is specified for either parameter, display/remove timings from the .kbp are used.',
+				type: 'string',
+				requiresArg: true,
+				nargs: 1
+			},
 			'width': {
 				alias: 'W',
 				description: 'Override the width in the virtual resolution. E.g. set to 384 to get 16:9 aspect ratio if border is enabled, and 341 if it\'s not. This only has any effect with the --cdg option enabled.',
@@ -148,6 +161,7 @@ async function mainCLI() {
 		.check(function (argv) {
 			let err=false;
 			let f = argv['fade']?.split(',');
+            let d = argv['displayremove']?.split(',');
 			// Setting the type only makes it parse it as a number, it doesn't validate the result
 			if(isNaN(argv['minimum-progression-duration'])) {
 				throw new Error('--minimum-progression-duration must be a number');
@@ -165,6 +179,10 @@ async function mainCLI() {
 				throw new Error('--fade must have 1-2 non-negative integer fade durations specified');
 				err=true;
 			}
+			if (d.length < 1 || d.length > 2 || d.some(x=>isNaN(parseInt(x)) || parseInt(x) < -1)){
+				throw new Error('--displayremove must have 1-2 non-negative or -1 integer display durations specified');
+				err=true;
+			}
 			return !err;
 		})
 		.middleware(function (argv) {
@@ -175,6 +193,7 @@ async function mainCLI() {
 					border: true,
 					cdg: true,
 					transparency: true,
+                    displayremove: "-1",
 					...argv
 				}
 			}
@@ -209,6 +228,9 @@ async function mainCLI() {
 			if (! ('fade' in argv)) {
 				argv['fade']="300,200";
 			} 
+			if (! ('displayremove' in argv)) {
+				argv['displayremove']="1000,100";
+			} 
       if (! ('offset' in argv)) {
         argv['offset']= track_offset || 0;
       }
@@ -217,7 +239,7 @@ async function mainCLI() {
 		.wrap(yargsInstance.terminalWidth())
 		.argv;
   
-  console.error("offset is: " + argv.offset);
+	//console.error("offset is: " + argv.offset);
 
 	let infile = argv._.shift() || '-';
 	// const outfile = argv._.shift() || '-';
@@ -227,6 +249,9 @@ async function mainCLI() {
 
 	argv.dialogueScript = fadeToDialogueScript(argv.fade);
 	delete argv.fade;
+
+	[argv.display, argv.remove] = displayremoveToDisplayRemove(argv.displayremove)
+	delete argv.displayremove
 
 	// This should be updated to work on Windows, but it would involve some extra
 	// work because even though readFile can take a file descriptor, it doesn't seem
