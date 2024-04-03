@@ -26,26 +26,75 @@ Options are :
 
 ```JS
 {
-  syllable_precision: boolean,
-  minimum_progression_duration: number
-
+  'syllable_precision': boolean,
+  'minimum_progression_duration': number,
+  'cdg': boolean,
+  'wipe': boolean,
+  'position': boolean,
+  'border': boolean
 }
 ```
 
-You might want to set `syllable_precision` to `true` to get syllable-timed karaoke instead of sentence-timed karaoke
-
-`minimum_progression_duration` is a duration in milliseconds. 0 is everything is progressive syllabe.
-1000 is one second. By default, 1000
+See details of these options from the matching options in the CLI section below.
 
 ### CLI
 
-The CLI version is used as follows :
+The CLI version has the following usage:
 
 ```sh
-kbp2ass myfile.txt
+kbp2ass [options] [--] [infile [outfile]]
+kbp2ass [options] infile minimum-progression-duration [--] [outfile]
+
+Convert file from KBS project format (.kbp) to SubStation Alpha subtitle (.ass)
+
+infile:	input file in .kbp format (stdin if not specified)
+outfile: output file in .ass format (stdout if not specified)
+
+For compatibility with older releases, minimum-progression-duration can be specified as a positional parameter instead of an option (if both are
+specified, the positional wins). If your output file name happens to be a number, use -- at some point before the second positional parameter to
+disable this functionality.
+
+Disable any boolean option with --no-[option]
+
+Options:
+      --help                                            Show help
+      --version                                         Show version number
+  -s, --syllable-precision                              Highlight syllables individually instead of combining lines into a single string.
+                                                        Disabling this is not recommended. (default: true)
+  -m, --minimum-progression-duration, --wipe-threshold  Set threshold of syllable display time in milliseconds before using progressive wipe
+                                                        effect (implicit default 1000)
+  -f, --full-mode                                       Enable processing of all positional and style information in the KBS project file (-w, -p,
+                                                        -b, -c). To unset any particular options use --no-{option}. For example, to run in full
+                                                        mode but with no border set, use "-f --no-b" or "--full-mode --no-border".
+  -c, --cdg                                             Set the virtual resolution of the destination file to that of CDG graphics, enabling
+                                                        positioning, alignment, and font size to work as they do in KBS.
+  -w, --wipe                                            Use wipe setting from project file (progressive wipe effect unless wiping is set to word
+                                                        by word). Sets -m to 0 if not otherwise set.
+  -p, --position                                        Use position data from project file. This includes alignment as well as
+                                                        vertical/horizontal offset. Strongly recommended to use with -c option.
+  -b, --border                                          Use default CDG border (12 pixels from top of screen). If -c option is used, these are
+                                                        virtual pixels. To use a custom border, set --no-border and add a border in your video
+                                                        editor of choice.
+
 ```
 
-It produces an ASS file on stdout.
+stdin support is currently only available on \*nix platforms. outfile support is not yet implemented.
+
+The recommended two usages are basic mode and full mode. Basic mode is:
+
+`kbp2ass infile.kbp`
+
+This creates an easy-to-edit .ass file with display/remove and wipe timing from the .kbp file.
+
+Full mode is:
+
+`kbp2ass -f infile.kbp`
+
+This creates a .ass file with as many kbp features as possible (which will be extended further as development continues). The intention is not to distribute this directly, as it might cause problems for some video players and is difficult to edit/read. The goal is to have a format that can be immediately hard-subbed into a video. It should be compatible with ffmpeg and anything else that uses libass. Example hard-subbing command:
+
+ffmpeg -i background-video.mp4 -vf ass=outfile.ass outfile.mp4
+
+For the cleanest wiping, 60fps video is recommended.
 
 ## Build
 
