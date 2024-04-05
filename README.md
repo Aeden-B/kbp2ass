@@ -26,16 +26,22 @@ Options are :
 
 ```JS
 {
-  'syllable_precision': boolean,
-  'minimum_progression_duration': number,
+  'syllable-precision': boolean,
+  'minimum-progression-duration': number,
   'cdg': boolean,
   'wipe': boolean,
   'position': boolean,
-  'border': boolean
+  'border': boolean,
+  'width': number,
+  'transparency': boolean,
+  'dialogueScript': string, // Specify custom prefix used on all lines, e.g. custom fade in/out values
+  'offset': number,
+  'display': number,
+  'remove': number
 }
 ```
 
-See details of these options from the matching options in the CLI section below.
+See details of these options from the matching options in the CLI section below. There's a comment on the dialogueScript option because its matching option is the non-obvious --fade, and it's more flexible. The fadeToDialogueScript function can be used to convert from the fade string format in the CLI.
 
 ### CLI
 
@@ -47,7 +53,7 @@ kbp2ass [options] infile minimum-progression-duration [--] [outfile]
 
 Convert file from KBS project format (.kbp) to SubStation Alpha subtitle (.ass)
 
-infile:	input file in .kbp format (stdin if not specified)
+infile:  input file in .kbp format (stdin if not specified)
 outfile: output file in .ass format (stdout if not specified)
 
 For compatibility with older releases, minimum-progression-duration can be specified as a positional parameter instead of an option (if both are
@@ -57,24 +63,49 @@ disable this functionality.
 Disable any boolean option with --no-[option]
 
 Options:
-      --help                                            Show help
-      --version                                         Show version number
+      --help                                            Show help                                                                        [boolean]
+      --version                                         Show version number                                                              [boolean]
   -s, --syllable-precision                              Highlight syllables individually instead of combining lines into a single string.
-                                                        Disabling this is not recommended. (default: true)
+                                                        Disabling this is not recommended.                               [boolean] [default: true]
   -m, --minimum-progression-duration, --wipe-threshold  Set threshold of syllable display time in milliseconds before using progressive wipe
-                                                        effect (implicit default 1000)
+                                                        effect (implicit default 1000)                                                    [number]
   -f, --full-mode                                       Enable processing of all positional and style information in the KBS project file (-w, -p,
-                                                        -b, -c). To unset any particular options use --no-{option}. For example, to run in full
-                                                        mode but with no border set, use "-f --no-b" or "--full-mode --no-border".
+                                                        -b, -c, -t, -D -1). To unset any particular options use --no-{option}. For example, to run
+                                                        in full mode but with no border set, use "-f --no-b" or "--full-mode --no-border".
+                                                                                                                                         [boolean]
   -c, --cdg                                             Set the virtual resolution of the destination file to that of CDG graphics, enabling
-                                                        positioning, alignment, and font size to work as they do in KBS.
+                                                        positioning, alignment, and font size to work as they do in KBS.                 [boolean]
   -w, --wipe                                            Use wipe setting from project file (progressive wipe effect unless wiping is set to word
-                                                        by word). Sets -m to 0 if not otherwise set.
+                                                        by word). Sets -m to 0 if not otherwise set.                                     [boolean]
   -p, --position                                        Use position data from project file. This includes alignment as well as
-                                                        vertical/horizontal offset. Strongly recommended to use with -c option.
+                                                        vertical/horizontal offset. Strongly recommended to use with -c option.          [boolean]
   -b, --border                                          Use default CDG border (12 pixels from top of screen). If -c option is used, these are
                                                         virtual pixels. To use a custom border, set --no-border and add a border in your video
-                                                        editor of choice.
+                                                        editor of choice.                                                                [boolean]
+  -F, --fade                                            Fade-in/out duration for line display in milliseconds. Defaults to 300,200. If only one
+                                                        number is specified it is used for both fade in and out. If 0 or 0,0 is specified, fade
+                                                        effect is disabled entirely.                                                      [string]
+  -D, --displayremove                                   Timing for line display/remove in milliseconds. Defaults to 1000,100. Note that this time
+                                                        includes the fade, so e.g. fade in of 300 and display of 1000 means that the line fades in
+                                                        for 300ms, then continues displaying at full opacity for 700ms before wiping starts. If
+                                                        only one number is specified it is used for both display and remove. If -1 is specified
+                                                        for either parameter, display/remove timings from the .kbp are used.              [string]
+  -W, --width                                           Override the width in the virtual resolution. E.g. set to 384 to get 16:9 aspect ratio if
+                                                        border is enabled, and 341 if it's not. This only has any effect with the --cdg option
+                                                        enabled.                                                                          [number]
+  -t, --transparency                                    When using palette color 0, always treat it as transparent. This more closely models the
+                                                        behavior KBS uses when generating a CDG, because drawing in the background color XORs with
+                                                        0, thus not updating the screen. This setting will only be noticeable if you overlap text
+                                                        or render the .ass against a different background color than is defined in the kbp file
+                                                        (or overlay an image/video).                                                     [boolean]
+  -o, --offset                                          Amount of seconds to adjust the timings in the .ass file. This can be used to match the
+                                                        offset configured in the KBS Studio Settings or to add time for an intro video. A negative
+                                                        number means to adjust the timings to occur before the time specified in the .kbp file. If
+                                                        not specified, the program will attempt to read from the KBS configuration file in
+                                                        %AppData%\Karaoke Builder\data_studio.ini. If unable, it will be set to 0. Note that the
+                                                        default setting in KBS is -0.2 seconds, but it is recommended to set it to 0 to make the
+                                                        .kbp files contain the true timing. If this offset would make any display/remove or wipe
+                                                        timings negative, those become 0.                                                 [number]
 
 ```
 
