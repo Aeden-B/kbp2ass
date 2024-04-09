@@ -139,16 +139,23 @@ export default class KBPParser {
                 // even though something like 16.799999999999997 will technically work
 				style.Fontsize = (parseInt(element[1]) * 1.4).toFixed(2);
 
-				style.Bold = element[2] === 'B' ? -1 : 0;
-				style.Italic = element[2] === 'I' ? -1 : 0;
-				style.StrikeOut = element[2] === 'S' ? -1 : 0;
-				style.Underline = element[2] === 'U' ? -1 : 0;
+				// element[2] is empty if no styles are applied, and contains
+				// the letters B, I, S, U for each of bold, italic, strikethrough,
+				// underline
+				style.Bold = element[2].indexOf('B') === -1 ? 0 : -1;
+				style.Italic = element[2].indexOf('I') === -1 ? 0 : -1;
+				style.StrikeOut = element[2].indexOf('S') === -1 ? 0 : -1;
+				style.Underline = element[2].indexOf('U') === -1 ? 0 : -1;
 				style.Encoding = parseInt(element[3]);
 				i++;
 				// third line of style
 				element = lines[i].trim().split(',');
+				// 0-3 are left/right/top/bottom outline
 				style.Outline = parseInt(element[0]);
+				// 4-5 are right/down shadow
 				style.Shadow = parseInt(element[4]);
+				// 6 is wiping style (text, outline, both), unused
+				style.AllCaps = element[7] === 'U';
 				this.styles[index] = style;
 				continue;
 			}
@@ -239,6 +246,9 @@ export default class KBPParser {
 					syllable.wipeProgressive = (wipeType >= 5 ? false : true);
 				}
 
+				if (currentStyle.AllCaps) {
+					syllable.text = syllable.text.toUpperCase();
+				}
 
 				if (syllable.start !== 0 || syllable.end !== 0) {
 					// Add the syllable

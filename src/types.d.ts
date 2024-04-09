@@ -38,6 +38,7 @@ interface IConfig {
 	MarginL?: number;
 	MarginR?: number;
 	MarginV?: number;
+	AllCaps?: boolean; // Virtual attribute, used during conversion, not part of ass file
   }
   interface IStyleKV {
 	key: "Style";
