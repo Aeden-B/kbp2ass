@@ -246,7 +246,7 @@ export default class KBPParser {
 					syllable.wipeProgressive = (wipeType >= 5 ? false : true);
 				}
 
-				if (currentStyle.AllCaps) {
+				if (currentStyle && currentStyle.AllCaps) {
 					syllable.text = syllable.text.toUpperCase();
 				}
 
