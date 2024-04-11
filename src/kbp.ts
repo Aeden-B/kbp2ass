@@ -15,19 +15,19 @@ export default class KBPParser {
 	kbp2AssColor(palette: string[], index: number) {
 		// If transparency mode is on, if the palette color used is the background
 		// (always index 0 in kbp format), do not display (full transparency)
-		const start = index == 0 && this.config.transparency? '&HFF' : '&H00';
-		return start + palette[index].split('').reverse().map(function (hex) {
+		const start = index == 0 && this.config.transparency? "&HFF" : "&H00";
+		return start + palette[index].split("").reverse().map(function (hex) {
 			return hex + hex;
-			}).join('');
+			}).join("");
 	}
 
 	getAlignement(element: string) {
 		let alignment = 8;
-		if (element === 'C') {
+		if (element === "C") {
 			alignment = 8;
-		} else if (element === 'L') {
+		} else if (element === "L") {
 			alignment = 7;
-		} else if (element === 'R') {
+		} else if (element === "R") {
 			alignment = 9;
 		}
 		return alignment;
@@ -42,11 +42,11 @@ export default class KBPParser {
 		let regex = /(.*)\/ *([0-9]+)\/([0-9]+)\/([0-9]+)/g;
 
 		if (file.match(regex).length === 0) {
-			throw ('Invalid KaraokeBuilder file');
+			throw ("Invalid KaraokeBuilder file");
 		}
 
 		// Let's parse the file line by line
-		let lines = file.replace(/\r+/g, '').split('\n');
+		let lines = file.replace(/\r+/g, "").split("\n");
 
 		let sentenceID = 1;			// Current sentence ID
 		let trackID = 1;			// Current track ID
@@ -83,7 +83,7 @@ export default class KBPParser {
 			// Delete the trailing spaces
 			let line: string = lines[i].trimEnd();
 
-			if (line == 'PAGEV2') {
+			if (line == "PAGEV2") {
 				blockcount++;
 				currentPos = topMargin - lineSpacing // line is read before the applicable syllables start, so it will add back lineSpacing
 				continue;
@@ -91,7 +91,7 @@ export default class KBPParser {
 
 			if (line.match(/^'Margins/)?.length > 0) {
 				i++;
-				[leftMargin, rightMargin, topMargin, lineSpacing] = lines[i].trim().split(',').map(x => parseInt(x));
+				[leftMargin, rightMargin, topMargin, lineSpacing] = lines[i].trim().split(",").map(x => parseInt(x));
 				topMargin += (this.config.border ? 12 : 0);
 				// TODO: determine the correct value based on style 0 (style 1 in GUI)
 				// 19 is correct for Arial 12 bold, Arial 13, and Arial 13 bold
@@ -100,12 +100,12 @@ export default class KBPParser {
 
 			if (line.match(/^'Other/)?.length > 0) {
 				i++;
-				defaultWipeProgressive = (lines[i].trim().split(',')[1] == '5' ? false : true);
+				defaultWipeProgressive = (lines[i].trim().split(",")[1] == "5" ? false : true);
 			}
 
 			if (line.match(/^'Palette Colours/)?.length > 0) {
 				i++;
-				colours = lines[i].trim().split(',');
+				colours = lines[i].trim().split(",");
 				continue;
 			}
 
@@ -114,7 +114,7 @@ export default class KBPParser {
 				// Style numbers can be skipped and possibly don't even need to be sequential
 				let index = parseInt(matches[1]);
 				// first line of style
-				let element = line.trimStart().split(',');
+				let element = line.trimStart().split(",");
 				let style: IStyle = {
 					Name: `${element[0]}_${element[1]}`,
 					PrimaryColour: this.kbp2AssColor(colours, parseInt(element[4])),
@@ -124,7 +124,7 @@ export default class KBPParser {
 				};
 				i++;
 				// second line of style
-				element = lines[i].trim().split(',');
+				element = lines[i].trim().split(",");
 				style.Fontname = element[0];
 
 				// TODO: improve this based on font used
@@ -141,20 +141,20 @@ export default class KBPParser {
 				// element[2] is empty if no styles are applied, and contains
 				// the letters B, I, S, U for each of bold, italic, strikethrough,
 				// underline
-				style.Bold = element[2].indexOf('B') === -1 ? 0 : -1;
-				style.Italic = element[2].indexOf('I') === -1 ? 0 : -1;
-				style.StrikeOut = element[2].indexOf('S') === -1 ? 0 : -1;
-				style.Underline = element[2].indexOf('U') === -1 ? 0 : -1;
+				style.Bold = element[2].indexOf("B") === -1 ? 0 : -1;
+				style.Italic = element[2].indexOf("I") === -1 ? 0 : -1;
+				style.StrikeOut = element[2].indexOf("S") === -1 ? 0 : -1;
+				style.Underline = element[2].indexOf("U") === -1 ? 0 : -1;
 				style.Encoding = parseInt(element[3]);
 				i++;
 				// third line of style
-				element = lines[i].trim().split(',');
+				element = lines[i].trim().split(",");
 				// 0-3 are left/right/top/bottom outline
 				style.Outline = parseInt(element[0]);
 				// 4-5 are right/down shadow
 				style.Shadow = parseInt(element[4]);
 				// 6 is wiping style (text, outline, both), unused
-				style.AllCaps = element[7] === 'U';
+				style.AllCaps = element[7] === "U";
 				this.styles[index] = style;
 				continue;
 			}
@@ -167,7 +167,7 @@ export default class KBPParser {
 
 			// TODO: transitions?
 			if (line.match(/[LCR]\/[A-Za-z]/g)?.length > 0) {
-				let element = line.split('/');
+				let element = line.split("/");
 				currentPos += lineSpacing;
 				currentOffset = parseInt(element[5]);
 				rotation = parseInt(element[6]);
@@ -176,7 +176,7 @@ export default class KBPParser {
 					(8 - currentAlignment) * (
 							(currentAlignment == 7 ? leftMargin : rightMargin) + 
 							(this.config.border ? 6 : 0));
-				if (element[2] !== '0' && element[3] !== '0') {
+				if (element[2] !== "0" && element[3] !== "0") {
 					currentStyle = this.styles[element[1].toUpperCase().charCodeAt(0) - 65] ?? this.styles[0];
 					// Push the alignment from the first use of the style into the style
 					currentStyle.Alignment ||= currentAlignment;
@@ -190,12 +190,12 @@ export default class KBPParser {
 			}
 
 			// Ignore block separators FX/F/ statements
-			if (line.startsWith('--------') || line.startsWith('FX/') || line == 'PAGEV2' || line == 'MODS') {
+			if (line.startsWith("--------") || line.startsWith("FX/") || line == "PAGEV2" || line == "MODS") {
 				continue;
 			}
 
 			// Empty line is end of line
-			if (line.replace(/\s*/g, '').length == 0) {
+			if (line.replace(/\s*/g, "").length == 0) {
 				if (syllables.length > 0) {
 					// Create a new sentence
 					let sentence = this.makeSentence(sentenceID, syllables, currentStart, currentEnd, currentStyle.Name, currentPos + currentOffset, horizontalPos, currentAlignment == currentStyle.Alignment ? 0 : currentAlignment, rotation);
@@ -220,7 +220,7 @@ export default class KBPParser {
 				var syllable: any = {};
 
 				// Split of the regex result
-				let matches = line.split('/');
+				let matches = line.split("/");
 
 				// Get the syllable text
 				syllable.text = matches[0];
