@@ -69,7 +69,6 @@ interface IConfig {
 	value: Array<keyof IDialogue>;
   }
   
-  // ? same as sentence ?
   interface ISyllable {
 	text: string;
 	start: number;
