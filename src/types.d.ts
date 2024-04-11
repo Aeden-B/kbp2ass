@@ -12,9 +12,9 @@ interface IConfig {
 	'offset'?: number;
 	'display'?: number;
 	'remove'?: number;
-  }
-  
-  interface IStyle {
+}
+
+interface IStyle {
 	Name: string;
 	PrimaryColour: string;
 	SecondaryColour: string;
@@ -39,16 +39,16 @@ interface IConfig {
 	MarginR?: number;
 	MarginV?: number;
 	AllCaps?: boolean; // Virtual attribute, used during conversion, not part of ass file
-  }
-  interface IStyleKV {
+}
+interface IStyleKV {
 	key: "Style";
 	value: IStyle;
-  }
-  interface IStyles {
+}
+interface IStyles {
 	section: string;
 	body: Array<{ key: "Format"; value: Array<keyof IStyle> } | IStyleKV>;
-  }
-  interface IDialogue {
+}
+interface IDialogue {
 	Layer: string;
 	Start: string;
 	End: string;
@@ -59,24 +59,24 @@ interface IConfig {
 	MarginV: string;
 	Effect: string;
 	Text: string;
-  }
-  interface IDialogueKV<T> {
+}
+interface IDialogueKV<T> {
 	key: T;
 	value: IDialogue;
-  }
-  interface IFormatKV {
+}
+interface IFormatKV {
 	key: "Format";
 	value: Array<keyof IDialogue>;
-  }
-  
-  interface ISyllable {
+}
+
+interface ISyllable {
 	text: string;
 	start: number;
 	end: number;
 	duration: number;
 	wipeProgressive: boolean;
-  }
-  interface ISentence {
+}
+interface ISentence {
 	id: number;
 	syllables: ISyllable[];
 	start: number;
@@ -87,24 +87,23 @@ interface IConfig {
 	alignment: number;
 	text: string;
 	duration: number;
-    rotation: number;
-  }
-  
-  interface IScriptInfo {
+	rotation: number;
+}
+
+interface IScriptInfo {
 	section: string;
 	body: {
-	  type?: string;
-	  value: string | number;
-	  key?: string;
+		type?: string;
+		value: string | number;
+		key?: string;
 	}[];
-  }
-  
-  interface IEvents {
+}
+
+interface IEvents {
 	section: "Events";
 	body: Array<IFormatKV | IDialogueKV<"Dialogue"> | IDialogueKV<"Comment">>;
-  }
-  
-  type TSection = IScriptInfo | IStyles | IEvents;
-  
-  export function convertToASS(time: string, options: IConfig): string;
-  
+}
+
+type TSection = IScriptInfo | IStyles | IEvents;
+
+export function convertToASS(time: string, options: IConfig): string;

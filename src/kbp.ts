@@ -2,23 +2,23 @@ import { IStyle, IConfig, ISentence, ISyllable } from "./types";
 
 
 export default class KBPParser {
-  config: IConfig;
-  track: ISentence[] | undefined;
-  styles: IStyle[] = [];
+	config: IConfig;
+	track: ISentence[] | undefined;
+	styles: IStyle[] = [];
 
-  constructor(config: IConfig) {
-    this.config = config;
-    this.track = [];
-  }
+	constructor(config: IConfig) {
+		this.config = config;
+		this.track = [];
+	}
 
-  // Convert a 3-hex-digit RGB color to an 8-digit ABGR (backwards RGBA)
+	// Convert a 3-hex-digit RGB color to an 8-digit ABGR (backwards RGBA)
 	kbp2AssColor(palette: string[], index: number) {
 		// If transparency mode is on, if the palette color used is the background
 		// (always index 0 in kbp format), do not display (full transparency)
-    const start = index == 0 && this.config.transparency?  '&HFF':'&H00' ;
-    return start + palette[index].split('').reverse().map(function (hex) {
-      return hex + hex;
-    }).join('');
+		const start = index == 0 && this.config.transparency? '&HFF' : '&H00';
+		return start + palette[index].split('').reverse().map(function (hex) {
+			return hex + hex;
+			}).join('');
 	}
 
 	getAlignement(element: string) {
@@ -38,7 +38,6 @@ export default class KBPParser {
 	 * @param {string} file KBP text file content
 	 */
 	parse(file: string) {
-
 		// Lyric match regex like ZA/						592/622/0
 		let regex = /(.*)\/ *([0-9]+)\/([0-9]+)\/([0-9]+)/g;
 
@@ -74,7 +73,7 @@ export default class KBPParser {
 		let fixed = null;
 		let rotation = null;
 
-    let offsetms = Math.floor(this.config.offset * 1000);
+		let offsetms = Math.floor(this.config.offset * 1000);
 
 		// We split blocks by PAGEV2, and ignore the first one (it is header)
 		let blockcount = 0;
@@ -134,9 +133,9 @@ export default class KBPParser {
 				// for most normal fonts but ideally this should change to
 				// something like this example in Cairo:
 				// https://stackoverflow.com/questions/23252321/freetype-sizing-fonts-based-on-cap-height
-                // Another option is adding a parameter for font scaling
-                // Note: using toFixed to make a reasonable-looking number for the .ass file
-                // even though something like 16.799999999999997 will technically work
+				// Another option is adding a parameter for font scaling
+				// Note: using toFixed to make a reasonable-looking number for the .ass file
+				// even though something like 16.799999999999997 will technically work
 				style.Fontsize = (parseInt(element[1]) * 1.4).toFixed(2);
 
 				// element[2] is empty if no styles are applied, and contains
@@ -174,9 +173,9 @@ export default class KBPParser {
 				rotation = parseInt(element[6]);
 				currentAlignment = this.getAlignement(element[0]);
 				horizontalPos = (currentAlignment - 7) * totalWidth / 2 + parseInt(element[4]) +
-												(8 - currentAlignment) * (
-													(currentAlignment == 7 ? leftMargin : rightMargin) + 
-													(this.config.border ? 6 : 0));
+					(8 - currentAlignment) * (
+							(currentAlignment == 7 ? leftMargin : rightMargin) + 
+							(this.config.border ? 6 : 0));
 				if (element[2] !== '0' && element[3] !== '0') {
 					currentStyle = this.styles[element[1].toUpperCase().charCodeAt(0) - 65] ?? this.styles[0];
 					// Push the alignment from the first use of the style into the style
@@ -184,9 +183,9 @@ export default class KBPParser {
 				}
 				fixed = (element[1].toLowerCase() == element[1]);
 				currentStart = Math.floor(parseInt(element[2]) * 10) + offsetms;
-        if (currentStart < 0) currentStart = 0;
+				if (currentStart < 0) currentStart = 0;
 				currentEnd = Math.floor(parseInt(element[3]) * 10) + offsetms;
-        if (currentEnd < 0) currentEnd = 0;
+				if (currentEnd < 0) currentEnd = 0;
 				continue;
 			}
 
@@ -233,10 +232,10 @@ export default class KBPParser {
 				// from ever wiping but ideally there should be a fixed version of the
 				// style that does not even use \k or \kf
 				syllable.start = fixed ? currentEnd : Math.floor(parseInt(matches[1].trim()) * 10 + offsetms);
-        if (syllable.start < 0) syllable.start = 0;
+				if (syllable.start < 0) syllable.start = 0;
 				// Add the duration, end time
 				syllable.end = fixed ? syllable.start : Math.floor(parseInt(matches[2].trim()) * 10 + offsetms);
-        if (syllable.end < 0) syllable.end = 0;
+				if (syllable.end < 0) syllable.end = 0;
 				syllable.duration = syllable.end - syllable.start;
 
 				let wipeType = parseInt(matches[3].trim());
@@ -262,46 +261,46 @@ export default class KBPParser {
 		};
 	}
 
-  /**
-   * Make a new sentence
-   * @param {number} id          ID of the sentence
-   * @param {ISyllable[]}  syllables   Syllables list of the sentence
-   * @param {number} start       Start time of the sentence
-   * @param {number} end         End time of the sentence
-   * @param {number} vpos        Vertical position to draw sentence
-   * @param {number} hpos        Horizontal position to draw sentence
-   * @param {number} alignment   Text alignment of sentence
-   * @param {number} rotation    Rotation of the text in degrees
-   */
-  private makeSentence(
-    id: number,
-    syllables: ISyllable[],
-    start: number,
-    end: number,
-    styleName: string,
-    vpos: number,
-    hpos: number,
-    alignment: number,
-    rotation: number
-  ): ISentence {
-    start = start ?? syllables[0].start;
-    end = end ?? syllables[syllables.length - 1].end;
-    const duration = end - start;
-    return {
-      id,
-      start,
-      end,
-      duration,
-      styleName,
-      vpos,
-      hpos,
-      alignment,
-      // Insert sentence syllables as objects or as a string
-      syllables: this.config["syllable-precision"] ? syllables : undefined,
-      text: this.config["syllable-precision"]
-        ? ""
-        : syllables.map(s => s.text).join(""),
-      rotation
-    };
-  }
+	/**
+	 * Make a new sentence
+	 * @param {number} id              ID of the sentence
+	 * @param {ISyllable[]} syllables  Syllables list of the sentence
+	 * @param {number} start           Start time of the sentence
+	 * @param {number} end             End time of the sentence
+	 * @param {number} vpos            Vertical position to draw sentence
+	 * @param {number} hpos            Horizontal position to draw sentence
+	 * @param {number} alignment       Text alignment of sentence
+	 * @param {number} rotation        Rotation of the text in degrees
+	 */
+	private makeSentence(
+		id: number,
+		syllables: ISyllable[],
+		start: number,
+		end: number,
+		styleName: string,
+		vpos: number,
+		hpos: number,
+		alignment: number,
+		rotation: number
+	): ISentence {
+		start = start ?? syllables[0].start;
+		end = end ?? syllables[syllables.length - 1].end;
+		const duration = end - start;
+		return {
+			id,
+			start,
+			end,
+			duration,
+			styleName,
+			vpos,
+			hpos,
+			alignment,
+			// Insert sentence syllables as objects or as a string
+			syllables: this.config["syllable-precision"] ? syllables : undefined,
+			text: this.config["syllable-precision"]
+				? ""
+				: syllables.map(s => s.text).join(""),
+			rotation
+		};
+	}
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import  yargs from "yargs";
+import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { readFileSync } from "node:fs";
 import { convertToASS } from "./ass";
@@ -22,17 +22,17 @@ function displayremoveToDisplayRemove(displayremove: string) {
 
 async function mainCLI() {
 
-  // TODO: Either 1) only read the file in if track_offset is needed or 2) find other necessary settings to read
-  let track_offset = 0;
-  if ('APPDATA' in process.env ) {
-	try {
-		const settings = readFileSync(process.env.APPDATA + '/Karaoke Builder/data_studio.ini', 'utf8');
-		track_offset = parseFloat(settings.match(/^setoffset\s+(\S+)/m)[1]) / 100;
-	} catch (error) {
-		
-	}
+	// TODO: Possibly only read the file in if track_offset is needed
+	let track_offset = 0;
+	if ('APPDATA' in process.env ) {
+		try {
+			const settings = readFileSync(process.env.APPDATA + '/Karaoke Builder/data_studio.ini', 'utf8');
+			track_offset = parseFloat(settings.match(/^setoffset\s+(\S+)/m)[1]) / 100;
+		} catch (error) {
 
-  }
+		}
+
+}
 
 	// Per yargs docs, use of terminalWidth() in typescript requires workaround
 	// of assigning a variable name to the instance so it can be referenced
@@ -150,18 +150,18 @@ async function mainCLI() {
 				requiresArg: false,
 				nargs: 0
 			},
-      'offset': {
-        alias: 'o',
-        description: 'Amount of seconds to adjust the timings in the .ass file. This can be used to match the offset configured in the KBS Studio Settings or to add time for an intro video. A negative number means to adjust the timings to occur before the time specified in the .kbp file. If not specified, the program will attempt to read from the KBS configuration file in %AppData%\\Karaoke Builder\\data_studio.ini. If unable, it will be set to 0. Note that the default setting in KBS is -0.2 seconds, but it is recommended to set it to 0 to make the .kbp files contain the true timing. If this offset would make any display/remove or wipe timings negative, those become 0.',
-        type: 'number',
-        requiresArg: true
-      }
+			'offset': {
+				alias: 'o',
+				description: 'Amount of seconds to adjust the timings in the .ass file. This can be used to match the offset configured in the KBS Studio Settings or to add time for an intro video. A negative number means to adjust the timings to occur before the time specified in the .kbp file. If not specified, the program will attempt to read from the KBS configuration file in %AppData%\\Karaoke Builder\\data_studio.ini. If unable, it will be set to 0. Note that the default setting in KBS is -0.2 seconds, but it is recommended to set it to 0 to make the .kbp files contain the true timing. If this offset would make any display/remove or wipe timings negative, those become 0.',
+				type: 'number',
+				requiresArg: true
+			}
 		})
 		.strictOptions()
 		.check(function (argv) {
 			let err=false;
 			let f = argv['fade']?.split(',');
-            let d = argv['displayremove']?.split(',');
+			let d = argv['displayremove']?.split(',');
 			// Setting the type only makes it parse it as a number, it doesn't validate the result
 			if(isNaN(argv['minimum-progression-duration'])) {
 				throw new Error('--minimum-progression-duration must be a number');
@@ -193,7 +193,7 @@ async function mainCLI() {
 					border: true,
 					cdg: true,
 					transparency: true,
-                    displayremove: "-1",
+					displayremove: "-1",
 					...argv
 				}
 			}
@@ -231,14 +231,14 @@ async function mainCLI() {
 			if (! ('displayremove' in argv)) {
 				argv['displayremove']="1000,100";
 			} 
-      if (! ('offset' in argv)) {
-        argv['offset']= track_offset || 0;
-      }
+			if (! ('offset' in argv)) {
+				argv['offset']= track_offset || 0;
+			}
 			return argv;
 		}, true)
 		.wrap(yargsInstance.terminalWidth())
 		.argv;
-  
+
 	//console.error("offset is: " + argv.offset);
 
 	let infile = argv._.shift() || '-';
