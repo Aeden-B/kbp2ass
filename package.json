@@ -18,6 +18,9 @@
     "kbp"
   ],
   "author": "Florent Berthelot (@Aeden_)",
+  "contributors": [
+    "Matt M"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Aeden-B/kbp2ass/issues"
