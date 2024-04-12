@@ -17,7 +17,7 @@ function fadeToDialogueScript(fade: string) {
 function displayremoveToDisplayRemove(displayremove: string) {
 	let [display, remove] = displayremove.split(",").map(x=>parseInt(x));
 	if(remove === undefined) remove=display;
-	return [display, remove]
+	return [display, remove];
 }
 
 async function mainCLI() {
@@ -32,11 +32,11 @@ async function mainCLI() {
 
 		}
 
-}
+	}
 
 	// Per yargs docs, use of terminalWidth() in typescript requires workaround
 	// of assigning a variable name to the instance so it can be referenced
-	const yargsInstance = yargs(hideBin(process.argv))
+	const yargsInstance = yargs(hideBin(process.argv));
 
 	const argv = yargsInstance
 		.scriptName("kbp2ass")
@@ -195,13 +195,13 @@ async function mainCLI() {
 					transparency: true,
 					displayremove: "-1",
 					...argv
-				}
+				};
 			}
 			if (argv.wipe) {
 				argv = {
 					"minimum-progression-duration": 0,
 					...argv
-				}
+				};
 			}
 			if ("compat2" in argv) {
 				if (isNaN(parseInt(argv.compat2))) {
@@ -217,8 +217,7 @@ async function mainCLI() {
 			}
 			// "default" functionality from yargs cannot be used because it doesn't show whether a user set the value or the default set it
 			const default_opts = ["wipe", "position", "border", "cdg", "full-mode", "transparency"];
-			for(let x in default_opts)
-			{
+			for(let x in default_opts) {
 				const opt = default_opts[x];
 				if (! (opt in argv)) argv[opt]=false;
 			}
@@ -248,8 +247,8 @@ async function mainCLI() {
 	argv.dialogueScript = fadeToDialogueScript(argv.fade);
 	delete argv.fade;
 
-	[argv.display, argv.remove] = displayremoveToDisplayRemove(argv.displayremove)
-	delete argv.displayremove
+	[argv.display, argv.remove] = displayremoveToDisplayRemove(argv.displayremove);
+	delete argv.displayremove;
 
 	// This should be updated to work on Windows, but it would involve some extra
 	// work because even though readFile can take a file descriptor, it doesn't seem

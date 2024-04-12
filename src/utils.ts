@@ -18,6 +18,6 @@ export function clone<T>(a: T): T {
 export function pickValues<K extends string | number | symbol, V>(
 	obj: Record<K, V>,
 	keys: K | K[]
-	): V[] {
-		return Array.isArray(keys) ? keys.map(key => obj[key]) : [obj[keys]];
+): V[] {
+	return Array.isArray(keys) ? keys.map(key => obj[key]) : [obj[keys]];
 }

@@ -25,16 +25,16 @@ function generateASSLine(line: ISentence, options: IConfig) {
 		line.syllables.forEach(syl => {
 			gap =
 				lastSylEnd != null && syl.start - lastSylEnd > 10
-				? `{\\k${(syl.start - lastSylEnd) / 10}}`
-				: "";
+					? `{\\k${(syl.start - lastSylEnd) / 10}}`
+					: "";
 			assLine.push(
 				`${gap}{\\k${getProgressive(syl, options)}${Math.floor(
 					syl.duration / 10
 				)}}${escapeAss(syl.text, firstStart == null)}`
 			);
 
-				if (firstStart == null) firstStart = syl.start;
-				lastSylEnd = syl.end;
+			if (firstStart == null) firstStart = syl.start;
+			lastSylEnd = syl.end;
 		});
 	} else {
 		assLine.push(escapeAss(line.text, true));
@@ -127,8 +127,8 @@ export function convertToASS(time: string, options: IConfig) {
 	const styles = clone(ass.styles);
 	styles.body = styles.body.concat(
 		kbp.styles.length > 0
-		? kbp.styles.map(style => getStyleAss(style))
-		: [{ ...ass.defaultStyle }]
+			? kbp.styles.map(style => getStyleAss(style))
+			: [{ ...ass.defaultStyle }]
 	);
 
 	if (! ("dialogueScript" in options)) {

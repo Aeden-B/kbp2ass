@@ -18,7 +18,7 @@ export default class KBPParser {
 		const start = index == 0 && this.config.transparency? "&HFF" : "&H00";
 		return start + palette[index].split("").reverse().map(function (hex) {
 			return hex + hex;
-			}).join("");
+		}).join("");
 	}
 
 	getAlignement(element: string) {
@@ -85,7 +85,7 @@ export default class KBPParser {
 
 			if (line == "PAGEV2") {
 				blockcount++;
-				currentPos = topMargin - lineSpacing // line is read before the applicable syllables start, so it will add back lineSpacing
+				currentPos = topMargin - lineSpacing; // line is read before the applicable syllables start, so it will add back lineSpacing
 				continue;
 			}
 
@@ -109,7 +109,7 @@ export default class KBPParser {
 				continue;
 			}
 
-			let matches = line.match(/Style([0-1][0-9])/)
+			let matches = line.match(/Style([0-1][0-9])/);
 			if (matches?.length > 0) {
 				// Style numbers can be skipped and possibly don't even need to be sequential
 				let index = parseInt(matches[1]);
@@ -174,7 +174,7 @@ export default class KBPParser {
 				currentAlignment = this.getAlignement(element[0]);
 				horizontalPos = (currentAlignment - 7) * totalWidth / 2 + parseInt(element[4]) +
 					(8 - currentAlignment) * (
-							(currentAlignment == 7 ? leftMargin : rightMargin) + 
+						(currentAlignment == 7 ? leftMargin : rightMargin) + 
 							(this.config.border ? 6 : 0));
 				if (element[2] !== "0" && element[3] !== "0") {
 					currentStyle = this.styles[element[1].toUpperCase().charCodeAt(0) - 65] ?? this.styles[0];

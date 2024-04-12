@@ -41,7 +41,7 @@ function stringifySection(section: TSection) {
 
 			return stringifyDescriptor[method](descriptor, format);
 		})
-	.join("\n");
+		.join("\n");
 
 	return body ? head + "\n" + body : head;
 }
