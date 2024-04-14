@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.2
+
+Merge ItMightBeKaraoke fork into main
+
 ## 1.1.1
 
 Ensure behavior matches upstream by default where possible (except in the case of bugs)
