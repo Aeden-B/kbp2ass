@@ -1,7 +1,15 @@
 # CHANGELOG
 
+## 1.1.1
+
+Ensure behavior matches upstream by default where possible (except in the case of bugs)
+
+## 1.1.0
+
+Numerous updates to add various KBS functionality and CLI options
+
 ## 1.0.1
-- minimum_progression_duration is now 1 second by default
+- minimum\_progression\_duration is now 1 second by default
 
 ## 1.0.0
 
