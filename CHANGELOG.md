@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.1.3
+
+Improve fixed text support, change minimum-progression-duration to minimumProgressionDuration, remove syllable-precision
+
+## 1.1.2
+
+Minor fixes for some reason changes
+
 ## 1.1.1
 
 Ensure behavior matches upstream by default where possible (except in the case of bugs)

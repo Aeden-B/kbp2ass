@@ -26,7 +26,7 @@ Options are :
 
 ```JS
 {
-  'minimum-progression-duration': number,
+  'minimumProgressionDuration': number,
   'cdg': boolean,
   'wipe': boolean,
   'position': boolean,
