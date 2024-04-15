@@ -72,15 +72,6 @@ async function mainCLI() {
 		.hide("compat1")
 		.hide("compat2")
 		.options({
-			"syllable-precision": {
-				alias: "s",
-				description: "Highlight syllables individually instead of combining lines into a single string. Disabling this is not recommended.",
-				type: "boolean",
-				default: true,
-				// "nargs: 0" alone doesn't seem to be enough to stop a flag from consuming a parameter next to it
-				requiresArg: false,
-				nargs: 0
-			},
 			"minimum-progression-duration": {
 				alias: ["m", "wipe-threshold"],
 				description: "Set threshold of syllable display time in milliseconds before using progressive wipe effect (implicit default 1000)",
@@ -250,9 +241,9 @@ async function mainCLI() {
 	[argv.display, argv.remove] = displayremoveToDisplayRemove(argv.displayremove);
 	delete argv.displayremove;
 
-	// Remap keys to be more javascript-friendly
-	argv = (({"syllable-precision": syllablePrecision, "minimum-progression-duration": minimumProgressionDuration, ...rest}) =>
-		({syllablePrecision, minimumProgressionDuration, ...rest}))(argv);
+	// Remap key to be more javascript-friendly
+	argv = (({"minimum-progression-duration": minimumProgressionDuration, ...rest}) =>
+		({minimumProgressionDuration, ...rest}))(argv);
 
 	// This should be updated to work on Windows, but it would involve some extra
 	// work because even though readFile can take a file descriptor, it doesn't seem

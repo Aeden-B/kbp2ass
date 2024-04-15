@@ -1,5 +1,4 @@
 interface IConfig {
-	syllablePrecision?: boolean;
 	wipe?: boolean;
 	position?: boolean;
 	border?: boolean;
@@ -84,7 +83,6 @@ interface ISentence {
 	vpos: number;
 	hpos: number;
 	alignment: number;
-	text: string;
 	duration: number;
 	rotation: number;
 }

@@ -21,25 +21,20 @@ function generateASSLine(line: ISentence, options: IConfig) {
 	let firstStart = null;
 	let lastSylEnd = null;
 	let gap = null;
-	if(line.syllables) {
-		line.syllables.forEach(syl => {
-			gap =
-				lastSylEnd != null && syl.start - lastSylEnd > 10
-					? `{\\k${(syl.start - lastSylEnd) / 10}}`
-					: "";
-			assLine.push(
-				`${gap}{\\k${getProgressive(syl, options)}${Math.floor(
-					syl.duration / 10
-				)}}${escapeAss(syl.text, firstStart == null)}`
-			);
+	line.syllables.forEach(syl => {
+		gap =
+			lastSylEnd != null && syl.start - lastSylEnd > 10
+				? `{\\k${(syl.start - lastSylEnd) / 10}}`
+				: "";
+		assLine.push(
+			`${gap}{\\k${getProgressive(syl, options)}${Math.floor(
+				syl.duration / 10
+			)}}${escapeAss(syl.text, firstStart == null)}`
+		);
 
-			if (firstStart == null) firstStart = syl.start;
-			lastSylEnd = syl.end;
-		});
-	} else {
-		assLine.push(escapeAss(line.text, true));
-		firstStart=line.end; // Emulate "fixed text" and use the text style rather than the wipe style
-	}
+		if (firstStart == null) firstStart = syl.start;
+		lastSylEnd = syl.end;
+	});
 	const dialogue = clone(ass.defaultDialogue);
 
 	// Comment starts exactly with syllables to allow for retiming
@@ -127,7 +122,7 @@ export function convertToASS(time: string, options: IConfig) {
 	const styles = clone(ass.styles);
 	styles.body = styles.body.concat(
 		kbp.styles.length > 0
-			? kbp.styles.map(style => getStyleAss(style))
+			? [...kbp.styles, ...kbp.fixedStyles].map(style => getStyleAss(style))
 			: [{ ...ass.defaultStyle }]
 	);
 
