@@ -6,7 +6,7 @@ Improve fixed text support, change minimum-progression-duration to minimumProgre
 
 ## 1.1.2
 
-Minor fixes for some reason changes
+Merge ItMightBeKaraoke fork into main
 
 ## 1.1.1
 
