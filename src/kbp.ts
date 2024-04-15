@@ -190,9 +190,7 @@ export default class KBPParser {
 							Alignment: undefined
 						};
 						currentStyle = this.fixedStyles[fixedIndex];
-					}
-					// Regular style
-					else {
+					} else { // Regular style
 						currentStyle = this.styles[element[1].charCodeAt(0) - "A".charCodeAt(0)] ?? this.styles[0];
 					}
 					// Push the alignment from the first use of the style into the style
