@@ -296,8 +296,8 @@ export default class KBPParser {
 			hpos,
 			alignment,
 			// Insert sentence syllables as objects or as a string
-			syllables: this.config["syllable-precision"] ? syllables : undefined,
-			text: this.config["syllable-precision"]
+			syllables: this.config.syllablePrecision ? syllables : undefined,
+			text: this.config.syllablePrecision
 				? ""
 				: syllables.map(s => s.text).join(""),
 			rotation

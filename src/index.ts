@@ -38,7 +38,7 @@ async function mainCLI() {
 	// of assigning a variable name to the instance so it can be referenced
 	const yargsInstance = yargs(hideBin(process.argv));
 
-	const argv = yargsInstance
+	let argv = yargsInstance
 		.scriptName("kbp2ass")
 		.parserConfiguration({
 			"camel-case-expansion": false,
@@ -249,6 +249,10 @@ async function mainCLI() {
 
 	[argv.display, argv.remove] = displayremoveToDisplayRemove(argv.displayremove);
 	delete argv.displayremove;
+
+    // Remap keys to be more javascript-friendly
+    argv = (({"syllable-precision": syllablePrecision, "minimum-progression-duration": minimumProgressionDuration, ...rest}) =>
+        ({syllablePrecision, minimumProgressionDuration, ...rest}))(argv)
 
 	// This should be updated to work on Windows, but it would involve some extra
 	// work because even though readFile can take a file descriptor, it doesn't seem

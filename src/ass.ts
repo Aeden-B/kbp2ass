@@ -96,7 +96,7 @@ function getProgressive(syl: ISyllable, options: IConfig) {
 	// When duration exceeds the threshold, progressive wiping may be possible
 	if (
 		Math.floor(syl.duration / 10) >
-		Math.floor(options["minimum-progression-duration"] / 10)
+		Math.floor(options.minimumProgressionDuration / 10)
 	) {
 		// If option is set to use wiping setting from the kbp file, do so, otherwise set unconditionally
 		return options.wipe && !syl.wipeProgressive ? "" : "f";

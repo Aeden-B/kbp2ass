@@ -1,17 +1,16 @@
 interface IConfig {
-	"full-mode"?: boolean;
-	"syllable-precision"?: boolean;
-	"wipe"?: boolean;
-	"position"?: boolean;
-	"border"?: boolean;
-	"cdg"?: boolean;
-	"minimum-progression-duration"?: number;
-	"dialogueScript"?: string;
-	"width"?: number;
-	"transparency"?: boolean;
-	"offset"?: number;
-	"display"?: number;
-	"remove"?: number;
+	syllablePrecision?: boolean;
+	wipe?: boolean;
+	position?: boolean;
+	border?: boolean;
+	cdg?: boolean;
+	minimumProgressionDuration?: number;
+	dialogueScript?: string;
+	width?: number;
+	transparency?: boolean;
+	offset?: number;
+	display?: number;
+	remove?: number;
 }
 
 interface IStyle {
