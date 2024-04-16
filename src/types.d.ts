@@ -1,17 +1,15 @@
 interface IConfig {
-	"full-mode"?: boolean;
-	"syllable-precision"?: boolean;
-	"wipe"?: boolean;
-	"position"?: boolean;
-	"border"?: boolean;
-	"cdg"?: boolean;
-	"minimum-progression-duration"?: number;
-	"dialogueScript"?: string;
-	"width"?: number;
-	"transparency"?: boolean;
-	"offset"?: number;
-	"display"?: number;
-	"remove"?: number;
+	wipe?: boolean;
+	position?: boolean;
+	border?: boolean;
+	cdg?: boolean;
+	minimumProgressionDuration?: number;
+	dialogueScript?: string;
+	width?: number;
+	transparency?: boolean;
+	offset?: number;
+	display?: number;
+	remove?: number;
 }
 
 interface IStyle {
@@ -85,7 +83,6 @@ interface ISentence {
 	vpos: number;
 	hpos: number;
 	alignment: number;
-	text: string;
 	duration: number;
 	rotation: number;
 }

@@ -5,6 +5,7 @@ export default class KBPParser {
 	config: IConfig;
 	track: ISentence[] | undefined;
 	styles: IStyle[] = [];
+	fixedStyles: IStyle[] = [];
 
 	constructor(config: IConfig) {
 		this.config = config;
@@ -70,7 +71,6 @@ export default class KBPParser {
 		let horizontalPos = null;
 		let currentAlignment = null;
 		let defaultWipeProgressive = null;
-		let fixed = null;
 		let rotation = null;
 
 		let offsetms = Math.floor(this.config.offset * 1000);
@@ -177,11 +177,25 @@ export default class KBPParser {
 						(currentAlignment == 7 ? leftMargin : rightMargin) + 
 							(this.config.border ? 6 : 0));
 				if (element[2] !== "0" && element[3] !== "0") {
-					currentStyle = this.styles[element[1].toUpperCase().charCodeAt(0) - 65] ?? this.styles[0];
+					// Fixed text (no visibl wiping)
+					// Create styles on demand as used
+					if (element[1].toLowerCase() == element[1]) {
+						let fixedIndex = element[1].charCodeAt(0) - "a".charCodeAt(0);
+						fixedIndex = this.styles[fixedIndex] === undefined ? 0 : fixedIndex;
+						this.fixedStyles[fixedIndex] ??= {
+							...(this.styles[fixedIndex]),
+							Name: `${this.styles[fixedIndex].Name}_Fixed`,
+							// Color should be the "pre-wipe" color
+							PrimaryColour: this.styles[fixedIndex].SecondaryColour,
+							Alignment: undefined
+						};
+						currentStyle = this.fixedStyles[fixedIndex];
+					} else { // Regular style
+						currentStyle = this.styles[element[1].charCodeAt(0) - "A".charCodeAt(0)] ?? this.styles[0];
+					}
 					// Push the alignment from the first use of the style into the style
 					currentStyle.Alignment ||= currentAlignment;
 				}
-				fixed = (element[1].toLowerCase() == element[1]);
 				currentStart = Math.floor(parseInt(element[2]) * 10) + offsetms;
 				if (currentStart < 0) currentStart = 0;
 				currentEnd = Math.floor(parseInt(element[3]) * 10) + offsetms;
@@ -227,14 +241,10 @@ export default class KBPParser {
 
 				// Add the start time of the syllable
 
-				// TODO: Better handling of fixed text. Currently this will just set
-				// the time before wiping starts to be the duration of the line to stop it
-				// from ever wiping but ideally there should be a fixed version of the
-				// style that does not even use \k or \kf
-				syllable.start = fixed ? currentEnd : Math.floor(parseInt(matches[1].trim()) * 10 + offsetms);
+				syllable.start = Math.floor(parseInt(matches[1].trim()) * 10 + offsetms);
 				if (syllable.start < 0) syllable.start = 0;
 				// Add the duration, end time
-				syllable.end = fixed ? syllable.start : Math.floor(parseInt(matches[2].trim()) * 10 + offsetms);
+				syllable.end = Math.floor(parseInt(matches[2].trim()) * 10 + offsetms);
 				if (syllable.end < 0) syllable.end = 0;
 				syllable.duration = syllable.end - syllable.start;
 
@@ -295,11 +305,7 @@ export default class KBPParser {
 			vpos,
 			hpos,
 			alignment,
-			// Insert sentence syllables as objects or as a string
-			syllables: this.config["syllable-precision"] ? syllables : undefined,
-			text: this.config["syllable-precision"]
-				? ""
-				: syllables.map(s => s.text).join(""),
+			syllables,
 			rotation
 		};
 	}

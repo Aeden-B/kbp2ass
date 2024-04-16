@@ -26,8 +26,7 @@ Options are :
 
 ```JS
 {
-  'syllable-precision': boolean,
-  'minimum-progression-duration': number,
+  'minimumProgressionDuration': number,
   'cdg': boolean,
   'wipe': boolean,
   'position': boolean,
@@ -65,8 +64,6 @@ Disable any boolean option with --no-[option]
 Options:
       --help                                            Show help                                                                        [boolean]
       --version                                         Show version number                                                              [boolean]
-  -s, --syllable-precision                              Highlight syllables individually instead of combining lines into a single string.
-                                                        Disabling this is not recommended.                               [boolean] [default: true]
   -m, --minimum-progression-duration, --wipe-threshold  Set threshold of syllable display time in milliseconds before using progressive wipe
                                                         effect (implicit default 1000)                                                    [number]
   -f, --full-mode                                       Enable processing of all positional and style information in the KBS project file (-w, -p,

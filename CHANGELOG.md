@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.1.3
+
+Improve fixed text support, change minimum-progression-duration to minimumProgressionDuration, remove syllable-precision
+
 ## 1.1.2
 
 Merge ItMightBeKaraoke fork into main
